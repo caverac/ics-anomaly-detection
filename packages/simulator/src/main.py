@@ -9,15 +9,13 @@ for testing the anomaly detection pipeline.
 import asyncio
 import json
 import logging
-import os
 import random
 import struct
-import time
 from datetime import datetime, timezone
 from typing import Optional
 
+from confluent_kafka import Producer
 from fastapi import FastAPI, HTTPException
-from kafka import KafkaProducer
 from prometheus_client import Counter, Histogram, generate_latest
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
@@ -129,15 +127,16 @@ class ModbusGenerator:
     def _generate_pdu(self, function_code: int, plc: dict) -> bytes:
         """Generate Modbus PDU for a function code."""
         registers = list(plc["registers"])
+        max_addr = len(registers) - 1
 
         if function_code == 0x03:  # Read Holding Registers
-            address = random.choice(registers)
-            quantity = random.randint(1, min(10, len(registers) - address))
+            address = random.randint(0, max(0, max_addr - 10))
+            quantity = random.randint(1, 10)
             return struct.pack(">BHH", function_code, address, quantity)
 
         elif function_code == 0x04:  # Read Input Registers
-            address = random.choice(registers)
-            quantity = random.randint(1, min(10, len(registers) - address))
+            address = random.randint(0, max(0, max_addr - 10))
+            quantity = random.randint(1, 10)
             return struct.pack(">BHH", function_code, address, quantity)
 
         elif function_code == 0x06:  # Write Single Register
@@ -146,7 +145,7 @@ class ModbusGenerator:
             return struct.pack(">BHH", function_code, address, value)
 
         elif function_code == 0x10:  # Write Multiple Registers
-            address = random.choice(registers[:-5])
+            address = random.randint(0, max(0, max_addr - 10))
             quantity = random.randint(2, 5)
             values = [random.randint(0, 65535) for _ in range(quantity)]
             byte_count = quantity * 2
@@ -178,7 +177,7 @@ class ModbusGenerator:
 
 class Simulator:
     def __init__(self):
-        self.producer: Optional[KafkaProducer] = None
+        self.producer: Optional[Producer] = None
         self.running = False
         self.rate = settings.simulator_rate
         self.protocol = settings.simulator_protocol
@@ -188,15 +187,22 @@ class Simulator:
     def connect(self):
         """Connect to Kafka."""
         try:
-            self.producer = KafkaProducer(
-                bootstrap_servers=settings.kafka_brokers.split(","),
-                value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-                compression_type="gzip",
-            )
+            self.producer = Producer({
+                "bootstrap.servers": settings.kafka_brokers,
+                "compression.type": "gzip",
+                "batch.size": 16384,
+                "linger.ms": 5,
+            })
             logger.info(f"Connected to Kafka: {settings.kafka_brokers}")
         except Exception as e:
             logger.error(f"Failed to connect to Kafka: {e}")
             raise
+
+    def _delivery_callback(self, err, msg):
+        """Handle delivery reports."""
+        if err:
+            MESSAGES_ERRORS.inc()
+            logger.error(f"Message delivery failed: {err}")
 
     def generate_message(self) -> dict:
         """Generate a message based on current protocol."""
@@ -215,6 +221,7 @@ class Simulator:
         """Main simulation loop."""
         self.running = True
         interval = 1.0 / self.rate
+        msg_count = 0
 
         logger.info(f"Starting simulator: rate={self.rate}/s, protocol={self.protocol}")
 
@@ -222,9 +229,21 @@ class Simulator:
             try:
                 with MESSAGE_LATENCY.time():
                     msg = self.generate_message()
-                    key = f"{msg['src_ip']}:{msg['dst_ip']}".encode()
-                    self.producer.send(settings.kafka_topic, value=msg, key=key)
+                    key = f"{msg['src_ip']}:{msg['dst_ip']}"
+                    self.producer.produce(
+                        topic=settings.kafka_topic,
+                        key=key.encode("utf-8"),
+                        value=json.dumps(msg).encode("utf-8"),
+                        callback=self._delivery_callback,
+                    )
+                    msg_count += 1
                     MESSAGES_SENT.labels(protocol=msg["ics_protocol"]).inc()
+
+                    # Flush every 100 messages
+                    if msg_count % 100 == 0:
+                        self.producer.flush(timeout=1)
+                    else:
+                        self.producer.poll(0)  # Trigger callbacks
 
                 await asyncio.sleep(interval)
 
@@ -237,8 +256,7 @@ class Simulator:
         """Stop the simulator."""
         self.running = False
         if self.producer:
-            self.producer.flush()
-            self.producer.close()
+            self.producer.flush(timeout=5)
 
 
 # =============================================================================

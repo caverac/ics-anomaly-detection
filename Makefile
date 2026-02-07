@@ -54,11 +54,23 @@ clean:
 
 dev: up
 	docker compose --profile simulator up -d
-	docker compose up -d parser
+	docker compose up -d parser feature-engine
 	@echo ""
 	@echo "Development environment ready!"
 	@echo "  Simulator API: http://localhost:8083"
 	@echo "  Parser metrics: http://localhost:8082/metrics"
+	@echo ""
+	@echo "Pipeline: Simulator -> Parser -> Feature Engine"
+
+dev-full: up
+	docker compose --profile simulator up -d
+	docker compose up -d parser feature-engine anomaly-detection
+	@echo ""
+	@echo "Full pipeline ready!"
+	@echo "  Simulator API: http://localhost:8083"
+	@echo "  Parser metrics: http://localhost:8082/metrics"
+	@echo ""
+	@echo "Pipeline: Simulator -> Parser -> Feature Engine -> Anomaly Detection"
 
 simulator: up
 	docker compose --profile simulator up -d
@@ -96,6 +108,12 @@ build-parser:
 build-simulator:
 	docker compose build simulator
 
+build-feature-engine:
+	docker compose build feature-engine
+
+build-anomaly-detection:
+	docker compose build anomaly-detection
+
 # =============================================================================
 # Documentation
 # =============================================================================
@@ -120,18 +138,47 @@ test:
 # =============================================================================
 
 kafka-topics:
-	docker compose exec kafka kafka-topics.sh --bootstrap-server localhost:9092 --list
+	docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 
 kafka-consume-raw:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.raw.packets \
 		--from-beginning \
 		--max-messages 10
 
 kafka-consume-parsed:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.parsed.modbus \
 		--from-beginning \
 		--max-messages 10
+
+kafka-consume-features:
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
+		--bootstrap-server localhost:9092 \
+		--topic ics.features \
+		--from-beginning \
+		--max-messages 10
+
+kafka-consume-anomalies:
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
+		--bootstrap-server localhost:9092 \
+		--topic ics.anomalies \
+		--from-beginning \
+		--max-messages 10
+
+# =============================================================================
+# Training
+# =============================================================================
+
+train:
+	@echo "Training anomaly detection models from Kafka..."
+	docker compose run --rm anomaly-detection python scripts/train.py \
+		--kafka-brokers kafka:9092 \
+		--kafka-topic ics.features \
+		--output-dir /app/models \
+		--max-samples 5000 \
+		--epochs 30
+	@echo ""
+	@echo "Training complete! Models saved to anomaly_models volume."

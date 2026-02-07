@@ -74,6 +74,7 @@ coverage/
 *.pth
 mlruns/
 models/
+notebooks/*
 
 # Data
 *.pcap

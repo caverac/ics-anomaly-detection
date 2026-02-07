@@ -1,6 +1,12 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
+
+# Install system dependencies for confluent-kafka
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    librdkafka-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 COPY requirements.txt .

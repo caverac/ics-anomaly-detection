@@ -134,6 +134,20 @@ class FeatureEngine:
 
 def configure_logging(settings: Settings) -> None:
     """Configure structured logging."""
+    import logging
+    import sys
+
+    # Configure Python's stdlib logging first
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, settings.log_level.upper()))
+
+    # Add a stream handler if none exists
+    if not root_logger.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(getattr(logging, settings.log_level.upper()))
+        root_logger.addHandler(handler)
+
+    # Configure structlog
     processors = [
         structlog.stdlib.add_log_level,
         structlog.stdlib.PositionalArgumentsFormatter(),

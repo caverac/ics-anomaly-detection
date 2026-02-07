@@ -12,9 +12,9 @@ class KafkaSettings(BaseSettings):
     client_id: str = Field(default="feature-engine-client")
     auto_offset_reset: str = Field(default="earliest")
 
-    # Input topics
+    # Input topics (consume parsed messages from parser)
     input_topics: list[str] = Field(
-        default=["ics.raw.modbus", "ics.raw.dnp3", "ics.raw.opcua"]
+        default=["ics.parsed.modbus", "ics.parsed.dnp3", "ics.parsed.opcua"]
     )
 
     # Output topic

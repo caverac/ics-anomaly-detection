@@ -4,33 +4,38 @@ services:
   # =============================================================================
 
   kafka:
-    image: bitnami/kafka:3.7
+    image: apache/kafka:3.9.0
     container_name: ics-kafka
     ports:
       - "9092:9092"
       - "9094:9094"
     environment:
       # KRaft mode (no Zookeeper)
-      - KAFKA_CFG_NODE_ID=1
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Required for single-node KRaft mode
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       # Topic settings
-      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      - KAFKA_CFG_NUM_PARTITIONS=6
-      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=1
-      - KAFKA_CFG_LOG_RETENTION_HOURS=168
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 6
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168
       # Performance
-      - KAFKA_CFG_LOG_SEGMENT_BYTES=1073741824
-      - KAFKA_CFG_LOG_RETENTION_CHECK_INTERVAL_MS=300000
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
     volumes:
-      - kafka_data:/bitnami/kafka
+      - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1
+      test: /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1
       interval: 10s
       timeout: 10s
       retries: 5
@@ -39,7 +44,7 @@ services:
       - ics-network
 
   kafka-init:
-    image: bitnami/kafka:3.7
+    image: apache/kafka:3.9.0
     container_name: ics-kafka-init
     depends_on:
       kafka:
@@ -48,15 +53,15 @@ services:
     command:
       - |
         echo "Creating Kafka topics..."
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.raw.packets --partitions 6 --replication-factor 1
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.parsed.modbus --partitions 6 --replication-factor 1
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.parsed.dnp3 --partitions 6 --replication-factor 1
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.parsed.opcua --partitions 6 --replication-factor 1
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.features --partitions 6 --replication-factor 1
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.anomalies --partitions 6 --replication-factor 1
-        kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.alerts --partitions 3 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.raw.packets --partitions 6 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.parsed.modbus --partitions 6 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.parsed.dnp3 --partitions 6 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.parsed.opcua --partitions 6 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.features --partitions 6 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.anomalies --partitions 6 --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ics.alerts --partitions 3 --replication-factor 1
         echo "Topics created:"
-        kafka-topics.sh --bootstrap-server kafka:9092 --list
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
     networks:
       - ics-network
 
@@ -121,6 +126,58 @@ services:
       - RUST_LOG=info
     ports:
       - "8082:8082"
+    networks:
+      - ics-network
+    restart: unless-stopped
+
+  # =============================================================================
+  # Feature Engine
+  # =============================================================================
+
+  feature-engine:
+    build:
+      context: ./packages/feature-engine
+      dockerfile: Dockerfile
+    container_name: ics-feature-engine
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_GROUP_ID=ics-feature-engine
+      - KAFKA_OUTPUT_TOPIC=ics.features
+      - FEATURE_ENGINE_LOG_LEVEL=INFO
+      - FEATURE_ENGINE_LOG_FORMAT=json
+    networks:
+      - ics-network
+    restart: unless-stopped
+
+  # =============================================================================
+  # Anomaly Detection
+  # =============================================================================
+
+  anomaly-detection:
+    build:
+      context: ./packages/anomaly-detection
+      dockerfile: Dockerfile
+    container_name: ics-anomaly-detection
+    depends_on:
+      kafka:
+        condition: service_healthy
+      feature-engine:
+        condition: service_started
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_GROUP_ID=ics-anomaly-detection
+      - KAFKA_INPUT_TOPIC=ics.features
+      - KAFKA_OUTPUT_TOPIC=ics.anomalies
+      - MODEL_MODEL_DIR=/app/models
+      - MODEL_HOT_RELOAD_ENABLED=true
+      - ANOMALY_DETECTION_LOG_LEVEL=INFO
+      - ANOMALY_DETECTION_LOG_FORMAT=json
+    volumes:
+      - anomaly_models:/app/models
+      - anomaly_data:/app/data
     networks:
       - ics-network
     restart: unless-stopped
@@ -219,3 +276,5 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
+  anomaly_models:
+  anomaly_data:

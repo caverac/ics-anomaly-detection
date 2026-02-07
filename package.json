@@ -12,7 +12,6 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "test": "yarn workspaces foreach -A run test",
-    "utest": "yarn workspaces foreach -Apt run test",
     "typecheck": "yarn workspaces foreach -A run typecheck"
   },
   "devDependencies": {
