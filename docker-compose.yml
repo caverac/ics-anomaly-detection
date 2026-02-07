@@ -183,6 +183,43 @@ services:
     restart: unless-stopped
 
   # =============================================================================
+  # Alerting Service
+  # =============================================================================
+
+  alerting:
+    build:
+      context: ./packages/alerting
+      dockerfile: Dockerfile
+    container_name: ics-alerting
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      anomaly-detection:
+        condition: service_started
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - KAFKA_GROUP_ID=ics-alerting
+      - KAFKA_INPUT_TOPIC=ics.anomalies
+      - KAFKA_OUTPUT_TOPIC=ics.alerts
+      - REDIS_URL=redis://redis:6379
+      - CORRELATION_WINDOW_SECONDS=300
+      - DEDUP_SUPPRESSION_SECONDS=60
+      - ESCALATION_P3_THRESHOLD=5
+      - ESCALATION_P2_THRESHOLD=10
+      - ESCALATION_P1_THRESHOLD=20
+      - WEBHOOK_ENABLED=false
+      - SLACK_ENABLED=false
+      - ALERTING_LOG_LEVEL=INFO
+      - ALERTING_LOG_FORMAT=json
+    ports:
+      - "8084:8084"
+    networks:
+      - ics-network
+    restart: unless-stopped
+
+  # =============================================================================
   # Traffic Simulator (for testing)
   # =============================================================================
 

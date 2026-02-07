@@ -1,4 +1,4 @@
-.PHONY: help up down logs clean build test dev
+.PHONY: help up down logs clean build test dev dev-full dev-alerting
 
 # Default target
 help:
@@ -11,7 +11,9 @@ help:
 	@echo "  make clean       - Remove all containers and volumes"
 	@echo ""
 	@echo "Development:"
-	@echo "  make dev         - Start infra + simulator + parser"
+	@echo "  make dev         - Start infra + simulator + parser + feature-engine"
+	@echo "  make dev-full    - Start full pipeline with anomaly detection"
+	@echo "  make dev-alerting - Start full pipeline with alerting service"
 	@echo "  make simulator   - Start with simulator only"
 	@echo "  make monitoring  - Start with Prometheus + Grafana"
 	@echo "  make debug       - Start with Kafka UI for debugging"
@@ -20,6 +22,7 @@ help:
 	@echo "  make build       - Build all Docker images"
 	@echo "  make build-capture - Build capture service"
 	@echo "  make build-parser  - Build parser service"
+	@echo "  make build-alerting - Build alerting service"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make docs        - Start documentation site"
@@ -72,6 +75,23 @@ dev-full: up
 	@echo ""
 	@echo "Pipeline: Simulator -> Parser -> Feature Engine -> Anomaly Detection"
 
+dev-alerting: up
+	docker compose --profile simulator up -d
+	docker compose up -d parser feature-engine anomaly-detection alerting
+	@echo ""
+	@echo "Full pipeline with alerting ready!"
+	@echo "  Simulator API: http://localhost:8083"
+	@echo "  Parser metrics: http://localhost:8082/metrics"
+	@echo "  Alerting API: http://localhost:8084"
+	@echo ""
+	@echo "Pipeline: Simulator -> Parser -> Feature Engine -> Anomaly Detection -> Alerting"
+	@echo ""
+	@echo "Test with attack simulation:"
+	@echo "  curl -X POST http://localhost:8083/attack/start -H 'Content-Type: application/json' -d '{\"mode\": \"reconnaissance\"}'"
+	@echo ""
+	@echo "View alerts:"
+	@echo "  curl http://localhost:8084/alerts"
+
 simulator: up
 	docker compose --profile simulator up -d
 	@echo ""
@@ -113,6 +133,9 @@ build-feature-engine:
 
 build-anomaly-detection:
 	docker compose build anomaly-detection
+
+build-alerting:
+	docker compose build alerting
 
 # =============================================================================
 # Documentation
@@ -165,6 +188,13 @@ kafka-consume-anomalies:
 	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.anomalies \
+		--from-beginning \
+		--max-messages 10
+
+kafka-consume-alerts:
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
+		--bootstrap-server localhost:9092 \
+		--topic ics.alerts \
 		--from-beginning \
 		--max-messages 10
 
