@@ -1,0 +1,6 @@
+[tools]
+node = "25"
+python = "3.13"
+go = "1.23"
+rust = "1.83"
+golangci-lint = "1.62"

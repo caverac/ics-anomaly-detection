@@ -1,0 +1,19 @@
+capture:
+  interface: "lo0"  # Use "eth0" on Linux, "lo0" for local testing on macOS
+  snap_len: 1600
+  promiscuous: true
+  timeout_ms: 100
+  bpf_filter: "tcp port 502 or tcp port 20000 or tcp port 4840 or tcp port 44818"
+  buffer_size: 64  # MB
+
+kafka:
+  brokers:
+    - "localhost:9092"
+  topic: "ics.raw.packets"
+  batch_size: 100
+  batch_timeout_ms: 100
+  compression_type: "gzip"
+
+logging:
+  level: "debug"  # debug, info, warn, error
+  format: "console"  # json or console

@@ -1,0 +1,11 @@
+{
+  "name": "@ics/capture",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test": "mise exec -- go test -v ./...",
+    "test:coverage": "mise exec -- go test -coverprofile=coverage.out ./... && mise exec -- go tool cover -func=coverage.out | grep total",
+    "lint": "mise exec -- golangci-lint run",
+    "build": "mise exec -- go build -o bin/capture ./cmd/capture"
+  }
+}

@@ -1,0 +1,9 @@
+[kafka]
+brokers = "localhost:9092"
+group_id = "ics-parser"
+input_topic = "ics.raw.packets"
+client_id = "ics-parser"
+auto_offset_reset = "earliest"
+
+[metrics]
+port = 8082

@@ -1,0 +1,23 @@
+# Clippy configuration for ICS Parser
+# See: https://doc.rust-lang.org/clippy/lint_configuration.html
+
+# Allow up to 7 arguments in functions (default is 7)
+too-many-arguments-threshold = 7
+
+# Max cyclomatic complexity threshold
+cognitive-complexity-threshold = 25
+
+# Max lines for a single function
+too-many-lines-threshold = 100
+
+# Type complexity threshold
+type-complexity-threshold = 250
+
+# Allow up to 8 bool parameters
+max-fn-params-bools = 8
+
+# Stack size threshold for pass-by-value
+trivial-copy-size-limit = 16
+
+# Min identifier length (allow short names for iterators, etc.)
+min-ident-chars-threshold = 1
