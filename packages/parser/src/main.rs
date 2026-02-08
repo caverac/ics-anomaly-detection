@@ -151,7 +151,9 @@ async fn start_metrics_server(port: u16) {
 
     info!(port, "Metrics server started");
 
-    axum::serve(listener, app).await.expect("Metrics server failed");
+    axum::serve(listener, app)
+        .await
+        .expect("Metrics server failed");
 }
 
 async fn metrics_handler() -> String {

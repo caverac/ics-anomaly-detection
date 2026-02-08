@@ -1,8 +1,9 @@
 """Syslog notification channel with CEF (Common Event Format) support."""
 
 import asyncio
+import contextlib
 import socket
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import IntEnum
 
 import structlog
@@ -90,10 +91,8 @@ class SyslogNotifier(NotificationChannel):
     def close(self) -> None:
         """Close the socket."""
         if self._socket:
-            try:
+            with contextlib.suppress(Exception):
                 self._socket.close()
-            except Exception:
-                pass
             self._socket = None
 
     def _calculate_priority(self, severity: SyslogSeverity) -> int:
@@ -136,7 +135,7 @@ class SyslogNotifier(NotificationChannel):
     ) -> str:
         """Build a complete syslog message with CEF payload."""
         priority = self._calculate_priority(severity)
-        timestamp = datetime.now(timezone.utc).strftime("%b %d %H:%M:%S")
+        timestamp = datetime.now(UTC).strftime("%b %d %H:%M:%S")
         hostname = self.settings.hostname or socket.gethostname()
 
         # RFC 3164 format: <priority>timestamp hostname tag: message
@@ -247,7 +246,7 @@ class SyslogNotifier(NotificationChannel):
                 )
                 return True
 
-            except socket.timeout:
+            except TimeoutError:
                 logger.error(
                     "syslog_timeout",
                     host=self.settings.host,
@@ -256,7 +255,7 @@ class SyslogNotifier(NotificationChannel):
                 self._socket = None
                 return False
 
-            except socket.error as e:
+            except OSError as e:
                 logger.error(
                     "syslog_socket_error",
                     host=self.settings.host,
