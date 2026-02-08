@@ -1,7 +1,6 @@
 """Main inference engine for anomaly detection."""
 
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 import numpy as np

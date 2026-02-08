@@ -2,7 +2,6 @@
 
 import json
 from collections.abc import Iterator
-from typing import Any
 
 import structlog
 from confluent_kafka import Consumer, KafkaError, KafkaException

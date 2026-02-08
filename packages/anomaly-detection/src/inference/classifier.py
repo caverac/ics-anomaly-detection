@@ -1,8 +1,5 @@
 """Threshold-based anomaly classification."""
 
-from typing import Any
-
-import numpy as np
 import structlog
 
 from src.schemas.anomaly import AnomalyType, Classification

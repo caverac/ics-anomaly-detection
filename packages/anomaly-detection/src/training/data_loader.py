@@ -1,9 +1,7 @@
 """Data loading utilities for training."""
 
 import json
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import structlog
