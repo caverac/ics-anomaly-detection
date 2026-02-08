@@ -33,6 +33,8 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      // Disable no-undef for TypeScript - TS handles this and types like RequestInit aren't runtime globals
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn'

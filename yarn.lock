@@ -2945,6 +2945,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@docusaurus/tsconfig@npm:^3.9.2":
+  version: 3.9.2
+  resolution: "@docusaurus/tsconfig@npm:3.9.2"
+  checksum: 10c0/d46241cb488d60f785710ee24980aad394423eaf5f76b64b0d47158fcbe19dd68a886898db83b1b65de18dfeb6c27d78adc8f8c4451d1ac29cc9da009ed15cd4
+  languageName: node
+  linkType: hard
+
 "@docusaurus/types@npm:3.9.2, @docusaurus/types@npm:^3.9.2":
   version: 3.9.2
   resolution: "@docusaurus/types@npm:3.9.2"
@@ -3432,6 +3439,7 @@ __metadata:
     "@docusaurus/preset-classic": "npm:^3.9.2"
     "@docusaurus/theme-common": "npm:^3.9.2"
     "@docusaurus/theme-mermaid": "npm:^3.9.2"
+    "@docusaurus/tsconfig": "npm:^3.9.2"
     "@docusaurus/types": "npm:^3.9.2"
     "@easyops-cn/docusaurus-search-local": "npm:^0.52.3"
     "@mdx-js/react": "npm:^3.1.1"
