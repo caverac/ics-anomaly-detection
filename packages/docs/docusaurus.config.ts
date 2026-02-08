@@ -87,11 +87,11 @@ const config: Config = {
           items: [
             {
               label: 'Getting Started',
-              to: '/getting-started'
+              to: '/getting-started/overview'
             },
             {
               label: 'Architecture',
-              to: '/architecture'
+              to: '/architecture/system-context'
             }
           ]
         }

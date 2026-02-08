@@ -23,54 +23,41 @@ flowchart TB
         end
 
         subgraph Stream["Stream Processing"]
-            KAFKA["📨 Event Bus<br/><i>Apache Kafka</i><br/>Message broker"]
-            FEAT["⚙️ Feature Engine<br/><i>Python</i><br/>Time-series features"]
+            KAFKA["📨 Event Bus<br/><i>Apache Kafka</i><br/>KRaft mode"]
+            FEAT["⚙️ Feature Engine<br/><i>Python</i><br/>Time-window features"]
         end
 
         subgraph ML["ML Layer"]
-            INF["🧠 Inference Service<br/><i>Python</i><br/>PyTorch, ONNX"]
-            TRAIN["📚 Training Pipeline<br/><i>Python</i><br/>MLflow, Ray"]
-            MODEL["📦 Model Registry<br/><i>MLflow</i><br/>Version control"]
+            INF["🧠 Anomaly Detection<br/><i>Python</i><br/>scikit-learn, PyTorch"]
         end
 
-        subgraph API["API Layer"]
-            REST["🌐 REST API<br/><i>TypeScript</i><br/>Fastify"]
-            WS["🔄 WebSocket<br/><i>TypeScript</i><br/>Real-time updates"]
+        subgraph Alerting["Alerting Layer"]
+            ALERT["🚨 Alerting Service<br/><i>Python</i><br/>FastAPI + Kafka"]
         end
 
         subgraph Storage["Storage Layer"]
-            TSDB["📈 TimescaleDB<br/><i>PostgreSQL</i><br/>Time-series data"]
-            PG["🗄️ PostgreSQL<br/><i>Metadata</i><br/>Alerts, configs"]
-            REDIS["⚡ Redis<br/><i>Cache</i><br/>Hot data, sessions"]
+            REDIS["⚡ Redis<br/><i>State</i><br/>Incidents, alerts"]
         end
 
         subgraph UI["Presentation"]
-            DASH["📊 Dashboard<br/><i>React</i><br/>Real-time monitoring"]
+            DASH["📊 Dashboard<br/><i>React 19</i><br/>Real-time monitoring"]
         end
     end
 
     ICS -->|"Packets"| CAP
-    CAP -->|"Raw frames"| PARSE
+    CAP -->|"Raw frames"| KAFKA
+    KAFKA -->|"Raw packets"| PARSE
     PARSE -->|"Parsed messages"| KAFKA
     KAFKA -->|"Events"| FEAT
     FEAT -->|"Feature vectors"| KAFKA
     KAFKA -->|"Features"| INF
     INF -->|"Anomaly scores"| KAFKA
-    KAFKA -->|"Alerts"| REST
+    KAFKA -->|"Anomalies"| ALERT
+    ALERT -->|"State"| REDIS
+    ALERT -->|"Alerts"| KAFKA
     KAFKA -->|"Alerts"| SIEM
 
-    FEAT -->|"Training data"| TSDB
-    TSDB -->|"Historical"| TRAIN
-    TRAIN -->|"Models"| MODEL
-    MODEL -->|"Load model"| INF
-
-    REST -->|"Query"| PG
-    REST -->|"Time-series"| TSDB
-    REST -->|"Cache"| REDIS
-
-    WS -->|"Subscribe"| KAFKA
-    DASH -->|"HTTP"| REST
-    DASH -->|"Stream"| WS
+    DASH -->|"API"| ALERT
     USER --> DASH
 
     style CAP fill:#1d3557,color:#fff
@@ -78,8 +65,7 @@ flowchart TB
     style KAFKA fill:#457b9d,color:#fff
     style FEAT fill:#2a9d8f,color:#fff
     style INF fill:#e63946,color:#fff
-    style TRAIN fill:#e63946,color:#fff
-    style REST fill:#f4a261,color:#000
+    style ALERT fill:#f4a261,color:#000
     style DASH fill:#e9c46a,color:#000
 ```
 
@@ -92,43 +78,36 @@ flowchart TB
 | Attribute | Value |
 |-----------|-------|
 | Language | Go |
+| Location | `packages/capture/` |
 | Purpose | High-performance packet capture |
 | Libraries | libpcap, gopacket |
 | Input | Network TAP / SPAN port |
-| Output | Raw Ethernet frames to Parser |
+| Output | Raw Ethernet frames to Kafka |
 
 **Key Responsibilities:**
 - Zero-copy packet capture from network interface
 - BPF filtering for ICS protocol ports
 - Buffering for burst traffic handling
-- Health monitoring and stats export
-
-**Resource Profile:**
-- CPU: Low (kernel-offloaded capture)
-- Memory: 512MB buffer pool
-- Network: Line-rate capable
+- Publishes to `ics.raw.packets` topic
 
 #### Protocol Parser
 
 | Attribute | Value |
 |-----------|-------|
 | Language | Rust |
+| Location | `packages/parser/` |
 | Purpose | ICS protocol dissection |
 | Libraries | nom (parser combinators) |
-| Input | Raw frames from Capture |
+| Input | Raw frames from Kafka |
 | Output | Structured messages to Kafka |
 
 **Supported Protocols:**
 
-```mermaid
-flowchart LR
-    subgraph Protocols
-        MOD["Modbus TCP<br/>Read/Write Coils<br/>Read/Write Registers"]
-        DNP["DNP3<br/>Data Link Layer<br/>Application Layer"]
-        OPC["OPC-UA<br/>Binary protocol<br/>Service requests"]
-        EIP["Ethernet/IP<br/>CIP messages<br/>I/O data"]
-    end
-```
+| Protocol | Port | Topic |
+|----------|------|-------|
+| Modbus TCP | 502 | `ics.parsed.modbus` |
+| DNP3 | 20000 | `ics.parsed.dnp3` |
+| OPC-UA | 4840 | `ics.parsed.opcua` |
 
 **Output Schema (Kafka message):**
 
@@ -142,11 +121,10 @@ flowchart LR
   "dst_port": 502,
   "function_code": 3,
   "unit_id": 1,
-  "register_address": 100,
-  "register_count": 10,
-  "response_time_ms": 12.5,
-  "payload_size": 48,
-  "raw_hex": "000100000006010300640010"
+  "address": 100,
+  "quantity": 10,
+  "is_response": false,
+  "payload_size": 48
 }
 ```
 
@@ -156,79 +134,65 @@ flowchart LR
 
 | Attribute | Value |
 |-----------|-------|
-| Technology | Apache Kafka |
+| Technology | Apache Kafka (KRaft mode) |
 | Purpose | Event streaming backbone |
-| Topics | See topic list below |
+| Mode | Single-node, no Zookeeper |
 
 **Topic Architecture:**
 
-```mermaid
-flowchart LR
-    subgraph Topics["Kafka Topics"]
-        T1["ics.raw.modbus<br/><i>Parsed Modbus messages</i>"]
-        T2["ics.raw.dnp3<br/><i>Parsed DNP3 messages</i>"]
-        T3["ics.features<br/><i>Feature vectors</i>"]
-        T4["ics.anomalies<br/><i>Detection results</i>"]
-        T5["ics.alerts<br/><i>Deduplicated alerts</i>"]
-    end
-
-    PARSE[Parser] --> T1
-    PARSE --> T2
-    T1 --> FEAT[Feature Engine]
-    T2 --> FEAT
-    FEAT --> T3
-    T3 --> INF[Inference]
-    INF --> T4
-    T4 --> ALERT[Alert Manager]
-    ALERT --> T5
-```
-
-**Retention Policy:**
-- Raw messages: 7 days
-- Features: 30 days
-- Alerts: 1 year
+| Topic | Description | Producers | Consumers |
+|-------|-------------|-----------|-----------|
+| `ics.raw.packets` | Raw captured packets | Capture, Simulator | Parser |
+| `ics.parsed.modbus` | Parsed Modbus messages | Parser | Feature Engine |
+| `ics.parsed.dnp3` | Parsed DNP3 messages | Parser | Feature Engine |
+| `ics.parsed.opcua` | Parsed OPC-UA messages | Parser | Feature Engine |
+| `ics.features` | Feature vectors | Feature Engine | Anomaly Detection |
+| `ics.anomalies` | Detection results | Anomaly Detection | Alerting |
+| `ics.alerts` | Deduplicated alerts | Alerting | Dashboard, SIEM |
 
 #### Feature Engine
 
 | Attribute | Value |
 |-----------|-------|
 | Language | Python |
+| Location | `packages/feature-engine/` |
 | Purpose | Time-series feature extraction |
-| Libraries | NumPy, Pandas, tsfresh |
+| Libraries | NumPy, confluent-kafka, pydantic |
 | Input | Parsed protocol messages |
 | Output | Feature vectors |
 
 **Feature Categories:**
 
-| Category | Features | Window |
-|----------|----------|--------|
-| Volume | msg_count, bytes_total, unique_sources | 1m, 5m, 15m |
-| Timing | inter_arrival_mean, inter_arrival_std, burst_score | 1m, 5m |
-| Protocol | function_code_dist, error_rate, new_unit_ids | 5m, 15m |
-| Network | unique_pairs, fan_out_ratio, scan_score | 5m, 15m |
-| Payload | register_entropy, value_change_rate, outlier_values | 1m, 5m |
+| Category | Features |
+|----------|----------|
+| Volume | message_count, bytes_total, bytes_mean, bytes_std |
+| Timing | iat_mean, iat_std, iat_min, iat_max, iat_median |
+| Protocol | fc_unique_count, fc_entropy, fc_read_ratio, fc_write_ratio |
+| Address | addr_unique_count, addr_range, addr_mean, addr_std |
 
 ### ML Layer
 
-#### Inference Service
+#### Anomaly Detection Service
 
 | Attribute | Value |
 |-----------|-------|
 | Language | Python |
-| Framework | PyTorch (ONNX runtime) |
+| Location | `packages/anomaly-detection/` |
+| Framework | scikit-learn, PyTorch |
 | Purpose | Real-time anomaly scoring |
-| SLA | < 50ms p99 latency |
+| Input | Feature vectors from Kafka |
+| Output | Anomaly results to Kafka |
 
 **Model Ensemble:**
 
 ```mermaid
 flowchart TB
-    INPUT["Feature Vector<br/>(150 dimensions)"]
+    INPUT["Feature Vector"]
 
     subgraph Ensemble["Model Ensemble"]
-        M1["Isolation Forest<br/><i>Point anomalies</i>"]
-        M2["LSTM Autoencoder<br/><i>Sequence anomalies</i>"]
-        M3["One-Class SVM<br/><i>Boundary detection</i>"]
+        M1["Isolation Forest<br/><i>Weight: 0.4</i>"]
+        M2["LSTM Autoencoder<br/><i>Weight: 0.3</i>"]
+        M3["One-Class SVM<br/><i>Weight: 0.3</i>"]
     end
 
     AGG["Score Aggregator<br/><i>Weighted ensemble</i>"]
@@ -248,89 +212,66 @@ flowchart TB
     style M3 fill:#e63946,color:#fff
 ```
 
-#### Training Pipeline
+**Classification Levels:**
+
+| Level | Score Range | Description |
+|-------|-------------|-------------|
+| NORMAL | 0.0 - 0.3 | Expected behavior |
+| SUSPICIOUS | 0.3 - 0.5 | Worth monitoring |
+| ANOMALY | 0.5 - 0.8 | Significant deviation |
+| CRITICAL | 0.8 - 1.0 | Likely attack |
+
+### Alerting Layer
+
+#### Alerting Service
 
 | Attribute | Value |
 |-----------|-------|
-| Orchestration | Ray |
-| Tracking | MLflow |
-| Schedule | Daily retrain (configurable) |
-| Data Source | TimescaleDB (labeled + unlabeled) |
+| Language | Python |
+| Location | `packages/alerting/` |
+| Framework | FastAPI, confluent-kafka |
+| Purpose | Alert correlation and notification |
+| API Port | 8084 |
+| State | Redis |
 
-**Training Workflow:**
+**Components:**
 
-```mermaid
-stateDiagram-v2
-    [*] --> FetchData
-    FetchData --> ValidateData
-    ValidateData --> FeatureSelection
-    FeatureSelection --> TrainModels
-    TrainModels --> Evaluate
-    Evaluate --> Compare
-    Compare --> Deploy: Better than baseline
-    Compare --> Reject: Worse than baseline
-    Deploy --> [*]
-    Reject --> [*]
-```
+| Component | Responsibility |
+|-----------|---------------|
+| Correlation Engine | Groups anomalies by src_ip:dst_ip:protocol |
+| Deduplication Tracker | Suppresses duplicates within 60s window |
+| Escalation Manager | Auto-escalates priority (P4→P1) based on count |
+| Notification Manager | Dispatches to console, webhook, Slack, Splunk, Syslog |
 
-### Storage Layer
-
-#### TimescaleDB (Time-Series)
-
-| Attribute | Value |
-|-----------|-------|
-| Base | PostgreSQL 15 |
-| Extension | TimescaleDB 2.x |
-| Purpose | Feature storage, historical analysis |
-
-**Schema:**
-
-```sql
--- Hypertable for features
-CREATE TABLE features (
-    time        TIMESTAMPTZ NOT NULL,
-    source_ip   INET,
-    dest_ip     INET,
-    protocol    TEXT,
-    features    JSONB,
-    PRIMARY KEY (time, source_ip, dest_ip)
-);
-
-SELECT create_hypertable('features', 'time');
-
--- Continuous aggregates for dashboards
-CREATE MATERIALIZED VIEW features_hourly
-WITH (timescaledb.continuous) AS
-SELECT
-    time_bucket('1 hour', time) AS bucket,
-    source_ip,
-    AVG((features->>'msg_count')::float) AS avg_msg_count,
-    MAX((features->>'anomaly_score')::float) AS max_anomaly
-FROM features
-GROUP BY bucket, source_ip;
-```
-
-### API Layer
-
-#### REST API
-
-| Attribute | Value |
-|-----------|-------|
-| Language | TypeScript |
-| Framework | Fastify |
-| Auth | JWT + API Keys |
-| Docs | OpenAPI 3.0 |
-
-**Key Endpoints:**
+**API Endpoints:**
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/v1/alerts` | List alerts (paginated) |
-| GET | `/api/v1/alerts/:id` | Alert details |
-| PATCH | `/api/v1/alerts/:id` | Update alert status |
-| GET | `/api/v1/devices` | Discovered devices |
-| GET | `/api/v1/metrics` | System health metrics |
-| POST | `/api/v1/models/reload` | Hot-reload models |
+| GET | `/health` | Health check |
+| GET | `/metrics` | Prometheus metrics |
+| GET | `/alerts` | List alerts |
+| GET | `/alerts/{id}` | Get alert details |
+| POST | `/alerts/{id}/acknowledge` | Acknowledge alert |
+| GET | `/incidents` | List incidents |
+| GET | `/incidents/{id}` | Get incident details |
+
+### Storage Layer
+
+#### Redis
+
+| Attribute | Value |
+|-----------|-------|
+| Purpose | State storage for alerting |
+| Data | Incidents, alerts, deduplication keys |
+
+**Data Structures:**
+
+| Key Pattern | Type | TTL |
+|-------------|------|-----|
+| `incident:{id}` | Hash | 24 hours |
+| `alert:{id}` | Hash | 7 days |
+| `dedup:{key}` | String | 60 seconds |
+| `incidents:active` | Set | - |
 
 ### Presentation Layer
 
@@ -338,14 +279,23 @@ GROUP BY bucket, source_ip;
 
 | Attribute | Value |
 |-----------|-------|
-| Framework | React 18 |
-| State | Zustand |
-| Charts | Apache ECharts |
-| Real-time | WebSocket |
+| Framework | React 19 |
+| Location | `packages/dashboard/` |
+| Build Tool | Vite 7 |
+| Styling | Tailwind CSS 4 |
+| Port | 3090 |
 
 **Key Views:**
-- **Overview**: System health, alert summary, top anomalies
+- **Dashboard**: System health, alert summary
 - **Alerts**: Filterable alert list with severity/status
-- **Investigation**: Alert drill-down with context
-- **Devices**: Asset inventory with baseline status
-- **Models**: ML model performance metrics
+- **Incidents**: Incident management with priority
+- **Network**: Network topology view
+- **Settings**: System status
+
+**API Integration:**
+
+The dashboard proxies requests through Vite to the alerting service:
+
+```
+Dashboard (:3090) → /api/* → Alerting Service (:8084)
+```

@@ -6,6 +6,10 @@ sidebar_position: 4
 
 How models are trained, validated, and versioned.
 
+:::note Current Status
+The training pipeline described below is the target architecture. Currently, models are trained offline and loaded from disk. MLflow integration, automated retraining, and data drift detection are planned features.
+:::
+
 ## Training Architecture
 
 ```mermaid

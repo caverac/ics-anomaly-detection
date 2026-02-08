@@ -9,7 +9,7 @@ How raw network traffic is captured and prepared for ML processing.
 ## Ingestion Pipeline
 
 ```mermaid
-flowchart LR
+flowchart TB
     subgraph Capture["1. Capture"]
         TAP["Network TAP"]
         NIC["Capture NIC"]
@@ -244,22 +244,29 @@ def enrich_message(msg: dict) -> dict:
 
 ```yaml
 topics:
-  ics.raw.modbus:
-    partitions: 12
-    replication_factor: 3
+  ics.raw.packets:
+    partitions: 6
+    replication_factor: 1
     retention_ms: 604800000  # 7 days
-    key: src_ip + dst_ip      # Consistent partitioning
+    key: src_ip + dst_ip
 
-  ics.raw.dnp3:
-    partitions: 12
-    replication_factor: 3
+  ics.parsed.modbus:
+    partitions: 6
+    replication_factor: 1
     retention_ms: 604800000
     key: src_ip + dst_ip
 
-  ics.raw.dlq:  # Dead letter queue
-    partitions: 1
-    replication_factor: 3
-    retention_ms: 2592000000  # 30 days
+  ics.parsed.dnp3:
+    partitions: 6
+    replication_factor: 1
+    retention_ms: 604800000
+    key: src_ip + dst_ip
+
+  ics.parsed.opcua:
+    partitions: 6
+    replication_factor: 1
+    retention_ms: 604800000
+    key: src_ip + dst_ip
 ```
 
 ### Message Format

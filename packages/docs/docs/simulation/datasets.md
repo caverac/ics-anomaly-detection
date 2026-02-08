@@ -6,6 +6,10 @@ sidebar_position: 3
 
 Public and synthetic datasets for training and evaluation.
 
+:::note Current Implementation
+The system currently uses the traffic simulator for all testing and development. Integration with public datasets for model training is a planned feature. The information below documents public ICS datasets that could be used for future training improvements.
+:::
+
 ## Public ICS Datasets
 
 ### SWaT (Secure Water Treatment)
@@ -173,93 +177,49 @@ def pcap_to_features(pcap_path: str) -> pd.DataFrame:
 
 ## Synthetic Data Generation
 
-For scenarios not covered by public datasets:
+For scenarios not covered by public datasets, use the built-in simulator:
 
-### Augmentation Strategies
+```bash
+# Generate normal traffic
+curl -X POST http://localhost:8083/config \
+  -H "Content-Type: application/json" \
+  -d '{"rate": 100}'
 
-```mermaid
-flowchart TB
-    REAL["Real Dataset"]
-
-    subgraph Augmentation["Augmentation"]
-        A1["Time Shifting<br/><i>Shift timestamps</i>"]
-        A2["Value Perturbation<br/><i>Add noise</i>"]
-        A3["Attack Injection<br/><i>Overlay attacks</i>"]
-        A4["Interpolation<br/><i>Increase resolution</i>"]
-    end
-
-    SYNTH["Augmented Dataset"]
-
-    REAL --> Augmentation --> SYNTH
+# Generate attack traffic
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "reconnaissance"}'
 ```
 
-### Attack Injection
+### Kafka Topic Data
 
-```python
-def inject_attack(
-    df: pd.DataFrame,
-    attack_type: str,
-    start_idx: int,
-    duration: int
-) -> pd.DataFrame:
-    """Inject synthetic attack into dataset."""
+The system stores all generated data in Kafka topics:
 
-    df = df.copy()
-    end_idx = start_idx + duration
+| Topic | Contents | Retention |
+|-------|----------|-----------|
+| `ics.raw.packets` | Raw simulated packets | 7 days |
+| `ics.parsed.modbus` | Parsed Modbus messages | 7 days |
+| `ics.features` | Extracted feature vectors | 7 days |
+| `ics.anomalies` | Anomaly detection results | 7 days |
 
-    if attack_type == "sensor_spike":
-        # Sudden value spike
-        col = "LIT101"  # Tank level sensor
-        df.loc[start_idx:end_idx, col] *= 2.0
+### Exporting Data
 
-    elif attack_type == "gradual_drift":
-        # Slow drift over time
-        col = "FIT201"  # Flow sensor
-        drift = np.linspace(0, 0.5, duration)
-        df.loc[start_idx:end_idx, col] *= (1 + drift)
+To export data for offline analysis:
 
-    elif attack_type == "replay":
-        # Replay historical values
-        replay_source = df.loc[start_idx-1000:start_idx-1000+duration]
-        df.loc[start_idx:end_idx] = replay_source.values
+```bash
+# Export features to JSON
+docker compose exec kafka kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic ics.features \
+  --from-beginning \
+  --timeout-ms 5000 > features.jsonl
 
-    # Update labels
-    df.loc[start_idx:end_idx, "label"] = "Attack"
-    df.loc[start_idx:end_idx, "attack_type"] = attack_type
-
-    return df
-```
-
-## Dataset Schema
-
-Our system expects data in this schema:
-
-### Feature Dataset (TimescaleDB)
-
-```sql
-CREATE TABLE training_data (
-    time            TIMESTAMPTZ NOT NULL,
-    key             TEXT NOT NULL,        -- src_ip:dst_ip
-    protocol        TEXT NOT NULL,
-    features        JSONB NOT NULL,       -- Feature vector
-    label           TEXT,                 -- NULL, "normal", "attack"
-    attack_type     TEXT,                 -- If attack: type name
-    source_dataset  TEXT,                 -- "swat", "batadal", "synthetic"
-    PRIMARY KEY (time, key)
-);
-```
-
-### Label Schema
-
-```json
-{
-  "label": "attack",
-  "attack_type": "command_injection",
-  "mitre_technique": "T0855",
-  "severity": "critical",
-  "description": "Unauthorized write to pump control register",
-  "ground_truth_source": "manual_annotation"
-}
+# Export anomalies
+docker compose exec kafka kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic ics.anomalies \
+  --from-beginning \
+  --timeout-ms 5000 > anomalies.jsonl
 ```
 
 ## Data Quality Checks

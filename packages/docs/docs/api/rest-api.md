@@ -4,242 +4,32 @@ sidebar_position: 1
 
 # REST API
 
-API reference for the ICS Anomaly Detection Engine.
+API reference for the Alerting Service.
+
+## Overview
+
+The alerting service exposes a REST API for querying and managing alerts and incidents. Built with FastAPI, it provides endpoints for alert management, incident tracking, and service health monitoring.
 
 ## Base URL
 
 ```
-http://localhost:8080/api/v1
+http://localhost:8084
 ```
 
 ## Authentication
 
-All endpoints require authentication via JWT or API key.
+:::note Current Implementation
+Authentication is not currently implemented. The API is intended for internal use within the Docker network.
+:::
 
-```bash
-# JWT Bearer token
-curl -H "Authorization: Bearer <token>" http://localhost:8080/api/v1/alerts
+## Service Endpoints
 
-# API Key
-curl -H "X-API-Key: <key>" http://localhost:8080/api/v1/alerts
-```
+### Health Check
 
-## Endpoints
-
-### Alerts
-
-#### List Alerts
+Check service health status.
 
 ```http
-GET /api/v1/alerts
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `status` | string | all | Filter by status: `open`, `acknowledged`, `resolved` |
-| `severity` | string | all | Filter: `critical`, `high`, `medium`, `low` |
-| `type` | string | all | Filter by anomaly type |
-| `start_time` | ISO8601 | -24h | Start of time range |
-| `end_time` | ISO8601 | now | End of time range |
-| `limit` | int | 50 | Max results (1-1000) |
-| `offset` | int | 0 | Pagination offset |
-
-**Response:**
-
-```json
-{
-  "alerts": [
-    {
-      "id": "alert-123",
-      "timestamp": "2024-01-15T10:30:00Z",
-      "severity": "high",
-      "type": "RECONNAISSANCE",
-      "status": "open",
-      "source_ip": "192.168.1.50",
-      "dest_ip": "192.168.1.10",
-      "anomaly_score": 0.89,
-      "description": "Device scanning detected from 192.168.1.50",
-      "mitre_technique": "T0846"
-    }
-  ],
-  "total": 150,
-  "limit": 50,
-  "offset": 0
-}
-```
-
-#### Get Alert Details
-
-```http
-GET /api/v1/alerts/:id
-```
-
-**Response:**
-
-```json
-{
-  "id": "alert-123",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "severity": "high",
-  "type": "RECONNAISSANCE",
-  "status": "open",
-  "source_ip": "192.168.1.50",
-  "dest_ip": "192.168.1.10",
-  "anomaly_score": 0.89,
-  "model_scores": {
-    "isolation_forest": 0.92,
-    "lstm_autoencoder": 0.85,
-    "one_class_svm": 0.88
-  },
-  "features": {
-    "unique_destinations_5m": 45,
-    "scan_score_15m": 0.91,
-    "msg_count_1m": 2500
-  },
-  "related_alerts": ["alert-120", "alert-121", "alert-122"],
-  "mitre_attack": {
-    "technique": "T0846",
-    "name": "Remote System Discovery",
-    "tactic": "Discovery"
-  },
-  "timeline": [
-    {"time": "2024-01-15T10:30:00Z", "event": "created"},
-    {"time": "2024-01-15T10:35:00Z", "event": "enriched"}
-  ]
-}
-```
-
-#### Update Alert
-
-```http
-PATCH /api/v1/alerts/:id
-```
-
-**Request Body:**
-
-```json
-{
-  "status": "acknowledged",
-  "assignee": "analyst@example.com",
-  "notes": "Investigating - appears to be maintenance scan"
-}
-```
-
-### Devices
-
-#### List Devices
-
-```http
-GET /api/v1/devices
-```
-
-**Response:**
-
-```json
-{
-  "devices": [
-    {
-      "ip": "192.168.1.10",
-      "first_seen": "2024-01-01T00:00:00Z",
-      "last_seen": "2024-01-15T10:30:00Z",
-      "protocol": "modbus",
-      "device_type": "plc",
-      "unit_ids": [1, 2],
-      "baseline_status": "established",
-      "alert_count_24h": 0
-    }
-  ],
-  "total": 25
-}
-```
-
-### Models
-
-#### Get Model Status
-
-```http
-GET /api/v1/models
-```
-
-**Response:**
-
-```json
-{
-  "models": [
-    {
-      "name": "isolation_forest",
-      "version": "1.2.3",
-      "stage": "production",
-      "loaded_at": "2024-01-15T00:00:00Z",
-      "metrics": {
-        "inference_latency_p99_ms": 5.2,
-        "inferences_total": 1250000
-      }
-    },
-    {
-      "name": "lstm_autoencoder",
-      "version": "2.0.1",
-      "stage": "production",
-      "loaded_at": "2024-01-15T00:00:00Z",
-      "metrics": {
-        "inference_latency_p99_ms": 18.5,
-        "inferences_total": 1250000
-      }
-    }
-  ]
-}
-```
-
-#### Reload Models
-
-```http
-POST /api/v1/models/reload
-```
-
-Trigger hot-reload of models from registry.
-
-### Metrics
-
-#### System Metrics
-
-```http
-GET /api/v1/metrics
-```
-
-**Response:**
-
-```json
-{
-  "ingestion": {
-    "packets_per_second": 5000,
-    "messages_per_second": 3200,
-    "parse_error_rate": 0.001
-  },
-  "inference": {
-    "inferences_per_second": 3200,
-    "latency_p50_ms": 12,
-    "latency_p99_ms": 35
-  },
-  "alerting": {
-    "alerts_per_hour": 5,
-    "open_alerts": 12,
-    "false_positive_rate": 0.15
-  },
-  "storage": {
-    "timescaledb_size_gb": 45.2,
-    "kafka_lag": 150
-  }
-}
-```
-
-### Health
-
-#### Health Check
-
-```http
-GET /api/v1/health
+GET /health
 ```
 
 **Response:**
@@ -247,46 +37,302 @@ GET /api/v1/health
 ```json
 {
   "status": "healthy",
-  "components": {
-    "kafka": "healthy",
-    "postgres": "healthy",
-    "timescaledb": "healthy",
-    "redis": "healthy",
-    "inference": "healthy"
-  },
-  "version": "1.0.0",
-  "uptime_seconds": 86400
+  "kafka_connected": true,
+  "redis_connected": true
 }
 ```
 
-## Error Responses
+| Status | Description |
+|--------|-------------|
+| `healthy` | All connections operational |
+| `degraded` | Some connections failing |
 
-All errors follow this format:
+### Metrics
+
+Get Prometheus-compatible metrics.
+
+```http
+GET /metrics
+```
+
+**Response:**
 
 ```json
 {
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid severity value",
-    "details": {
-      "field": "severity",
-      "allowed_values": ["critical", "high", "medium", "low"]
-    }
-  }
+  "alerting_alerts_processed_total": 1250,
+  "alerting_incidents_created_total": 45,
+  "alerting_incidents_updated_total": 120,
+  "alerting_notifications_sent_total": 89,
+  "alerting_alerts_suppressed_total": 340,
+  "alerting_escalations_total": 12
 }
 ```
 
-| Status Code | Error Code | Description |
-|-------------|------------|-------------|
-| 400 | VALIDATION_ERROR | Invalid request parameters |
-| 401 | UNAUTHORIZED | Missing or invalid auth |
-| 403 | FORBIDDEN | Insufficient permissions |
-| 404 | NOT_FOUND | Resource not found |
-| 429 | RATE_LIMITED | Too many requests |
-| 500 | INTERNAL_ERROR | Server error |
+### Statistics
 
-## Rate Limiting
+Get service statistics summary.
 
-- **Default:** 100 requests/minute per API key
-- **Burst:** Up to 20 requests/second
-- Headers: `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+```http
+GET /stats
+```
+
+**Response:**
+
+```json
+{
+  "alerts_processed": 1250,
+  "incidents_created": 45,
+  "incidents_updated": 120,
+  "notifications_sent": 89,
+  "dedup_suppressed": 340,
+  "escalations": 12
+}
+```
+
+## Alert Endpoints
+
+### List Alerts
+
+Retrieve recent alerts with optional filtering.
+
+```http
+GET /alerts
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | int | 50 | Maximum alerts to return |
+| `status` | string | - | Filter: `OPEN`, `ACKNOWLEDGED`, `RESOLVED` |
+| `severity` | string | - | Filter: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
+
+**Response:**
+
+```json
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "incident_id": "i9j8k7l6-m5n4-3210-wxyz-ab9876543210",
+    "created_at": "2024-01-15T10:30:00.123456Z",
+    "severity": "HIGH",
+    "status": "OPEN",
+    "title": "RECONNAISSANCE detected from 192.168.1.50",
+    "description": "Elevated fc_unique_count (8) indicates device scanning",
+    "source": {
+      "src_ip": "192.168.1.50",
+      "dst_ip": "192.168.1.10",
+      "protocol": "modbus"
+    },
+    "anomaly_type": "RECONNAISSANCE",
+    "ensemble_score": 0.89,
+    "confidence": 0.85,
+    "related_anomaly_count": 1,
+    "feature_contributions": {
+      "fc_unique_count": 0.45,
+      "fc_entropy": 0.32,
+      "fc_diagnostic_ratio": 0.23
+    }
+  }
+]
+```
+
+### Get Alert Details
+
+Get a specific alert by ID.
+
+```http
+GET /alerts/{alert_id}
+```
+
+**Response:** Same schema as list item.
+
+**Errors:**
+- `404` - Alert not found
+
+### Acknowledge Alert
+
+Mark an alert as acknowledged.
+
+```http
+POST /alerts/{alert_id}/acknowledge
+```
+
+**Response:**
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "ACKNOWLEDGED",
+  "acknowledged": true
+}
+```
+
+### Resolve Alert
+
+Mark an alert as resolved.
+
+```http
+POST /alerts/{alert_id}/resolve
+```
+
+**Response:**
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "status": "RESOLVED",
+  "acknowledged": true
+}
+```
+
+## Incident Endpoints
+
+Incidents group related anomalies by correlation key (`{src_ip}:{dst_ip}:{protocol}`).
+
+### List Incidents
+
+```http
+GET /incidents
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | int | 50 | Maximum incidents to return |
+| `status` | string | - | Filter: `ACTIVE`, `ACKNOWLEDGED`, `RESOLVED` |
+
+**Response:**
+
+```json
+[
+  {
+    "id": "i9j8k7l6-m5n4-3210-wxyz-ab9876543210",
+    "correlation_key": "192.168.1.50:192.168.1.10:modbus",
+    "status": "ACTIVE",
+    "priority": "P2",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z",
+    "anomaly_count": 5,
+    "alert_ids": ["a1b2c3d4..."],
+    "max_ensemble_score": 0.92,
+    "src_ips": ["192.168.1.50"],
+    "dst_ips": ["192.168.1.10", "192.168.1.11"],
+    "anomaly_types": ["RECONNAISSANCE"]
+  }
+]
+```
+
+### Get Incident Details
+
+```http
+GET /incidents/{incident_id}
+```
+
+**Response:** Same schema as list item.
+
+### Acknowledge Incident
+
+```http
+POST /incidents/{incident_id}/acknowledge
+```
+
+### Resolve Incident
+
+```http
+POST /incidents/{incident_id}/resolve
+```
+
+## Alert Schema
+
+### AlertSeverity
+
+| Value | Description |
+|-------|-------------|
+| `LOW` | Minor deviation, informational |
+| `MEDIUM` | Moderate anomaly, investigate |
+| `HIGH` | Significant threat indicator |
+| `CRITICAL` | Immediate action required |
+
+### AlertStatus
+
+| Value | Description |
+|-------|-------------|
+| `OPEN` | New, unacknowledged alert |
+| `ACKNOWLEDGED` | Analyst is aware/investigating |
+| `RESOLVED` | Alert has been addressed |
+
+### AnomalyType
+
+| Value | MITRE Mapping |
+|-------|---------------|
+| `RECONNAISSANCE` | T0846 |
+| `TIMING_ANOMALY` | T0882 |
+| `VOLUME_ANOMALY` | - |
+| `PROTOCOL_VIOLATION` | T0855 |
+| `UNAUTHORIZED_ACCESS` | T0821 |
+| `DATA_EXFILTRATION` | T0882 |
+| `COMMAND_INJECTION` | T0831 |
+| `UNKNOWN` | - |
+
+## Incident Schema
+
+### IncidentStatus
+
+| Value | Description |
+|-------|-------------|
+| `ACTIVE` | Ongoing incident |
+| `ACKNOWLEDGED` | Being investigated |
+| `RESOLVED` | Incident closed |
+
+### IncidentPriority
+
+| Priority | Criteria |
+|----------|----------|
+| `P4` | Initial incident (< 5 anomalies) |
+| `P3` | 5+ anomalies in window |
+| `P2` | 10+ anomalies or HIGH severity |
+| `P1` | 20+ anomalies or CRITICAL severity or multi-target |
+
+## Error Responses
+
+Errors follow FastAPI conventions:
+
+```json
+{
+  "detail": "Alert not found"
+}
+```
+
+| Status | Description |
+|--------|-------------|
+| `404` | Resource not found |
+| `422` | Validation error |
+| `500` | Internal server error |
+
+## Example Usage
+
+### List Critical Alerts
+
+```bash
+curl "http://localhost:8084/alerts?severity=CRITICAL&status=OPEN"
+```
+
+### Acknowledge an Alert
+
+```bash
+curl -X POST http://localhost:8084/alerts/a1b2c3d4-e5f6-7890-abcd-ef1234567890/acknowledge
+```
+
+### Get Active Incidents
+
+```bash
+curl "http://localhost:8084/incidents?status=ACTIVE"
+```
+
+### Check Service Health
+
+```bash
+curl http://localhost:8084/health
+```

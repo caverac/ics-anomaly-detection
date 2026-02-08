@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # ICS Network Anomaly Detection Engine
 
-A production-grade machine learning system for detecting anomalies in Industrial Control System (ICS) network traffic, designed to demonstrate expertise in:
+A machine learning system for detecting anomalies in Industrial Control System (ICS) network traffic, covers
 
 - **Time-series anomaly detection** for ICS/OT environments
 - **End-to-end ML pipelines** from data ingestion to alerting
@@ -14,53 +14,65 @@ A production-grade machine learning system for detecting anomalies in Industrial
 
 ## Project Goals
 
-This project is just an attempt to build an end-to-end solution for ICS/OT cybersecurity ML engineering, with a focus on practical implementation and real-world applicability. The key goals include:
+This project builds an end-to-end solution for ICS/OT cybersecurity ML engineering, with a focus on practical implementation and real-world applicability.
 
 | Capability | Implementation |
 |------------|----------------|
 | Time-series analysis | Multi-variate anomaly detection on protocol features |
-| Threat detection | Attack pattern recognition (reconnaissance, exploitation, command & control C2) |
-| Production ML | Model training, versioning, monitoring, A/B testing |
-| Resource efficiency | Optimized for edge deployment constraints |
+| Threat detection | Attack pattern recognition (reconnaissance, exploitation, C2) |
+| Production ML | Ensemble models with hot-reload and monitoring |
+| Real-time processing | Kafka streaming with sub-second latency |
 | Simulation | Realistic traffic generation with injectable attack scenarios |
 
-## High-Level Architecture
+## Architecture
 
 ```mermaid
-flowchart TB
-    subgraph Sources["Data Sources"]
-        SIM[Traffic Simulator]
-        PCAP[Packtet Capture PCAP Files]
-        LIVE[Live Capture]
+flowchart LR
+    subgraph ingestion["Data Ingestion"]
+        capture["Capture<br/>(Go)"]
+        parser["Parser<br/>(Rust)"]
+        features["Feature Engine<br/>(Python)"]
     end
 
-    subgraph Pipeline["ML Pipeline"]
-        ING[Ingestion]
-        FE[Feature Engineering]
-        INF[Inference Engine]
-        TRAIN[Training Pipeline]
+    subgraph ml["ML Pipeline"]
+        anomaly["Anomaly Detection<br/>(Python)"]
+        alerting["Alerting<br/>(Python)"]
     end
 
-    subgraph Output["Output"]
-        ALERT[Alert Manager]
-        DASH[Dashboard]
-        API[REST API]
+    subgraph kafka["Apache Kafka"]
+        raw[("ics.raw.packets")]
+        parsed[("ics.parsed.*")]
+        feat[("ics.features")]
+        anomalies[("ics.anomalies")]
+        alerts_topic[("ics.alerts")]
     end
 
-    Sources --> ING
-    ING --> FE
-    FE --> INF
-    FE --> TRAIN
-    TRAIN -.-> INF
-    INF --> ALERT
-    INF --> DASH
-    INF --> API
+    subgraph consumers["Consumers"]
+        api["API<br/>(TypeScript)"]
+        dashboard["Dashboard<br/>(React)"]
+        siem["SIEM"]
+    end
+
+    capture --> raw
+    raw --> parser
+    parser --> parsed
+    parsed --> features
+    features --> feat
+    feat --> anomaly
+    anomaly --> anomalies
+    anomalies --> alerting
+    alerting --> alerts_topic
+    alerts_topic --> api
+    alerts_topic --> dashboard
+    alerts_topic --> siem
 ```
 
 ## Quick Links
 
 - [Getting Started](/getting-started/overview) - Set up the development environment
 - [Architecture](/architecture/system-context) - Deep dive into system design
+- [Core Technology](/core-technology/go) - Technology choices and rationale
+- [Code Structure](/code-structure/capture) - Package-by-package walkthrough
 - [ML Pipeline](/ml-pipeline/data-ingestion) - How the models work
 - [Simulation](/simulation/traffic-generator) - Generate test traffic
 
@@ -68,9 +80,52 @@ flowchart TB
 
 | Layer | Technology |
 |-------|------------|
-| Language | TypeScript (API, Dashboard), Python (ML) |
+| Languages | Python, Go, Rust, TypeScript |
 | ML Framework | PyTorch, scikit-learn |
-| Stream Processing | Apache Kafka / Redis Streams |
-| Storage | TimescaleDB (time-series), PostgreSQL (metadata) |
+| Stream Processing | Apache Kafka (KRaft mode) |
+| State Storage | Redis |
+| Frontend | React 19, Vite 7, Tailwind CSS 4 |
 | Monitoring | Prometheus, Grafana |
-| Containerization | Docker, Kubernetes |
+| Containerization | Docker |
+
+## Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| Dashboard | 3090 | React monitoring UI |
+| Docs | 3000 | Docusaurus documentation |
+| Alerting API | 8084 | Alert/incident management |
+| Simulator API | 8083 | Traffic simulation control |
+| Kafka UI | 8080 | Topic browser (debug mode) |
+| Grafana | 3001 | Dashboards (monitoring mode) |
+| Prometheus | 9090 | Metrics (monitoring mode) |
+
+## Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/caverac/ics-anomaly-detection.git
+cd ics-anomaly-detection
+yarn install
+
+# Start the full pipeline with dashboard
+make dev-dashboard
+
+# Open the dashboard
+open http://localhost:3090
+```
+
+## Test Attack Simulation
+
+```bash
+# Start reconnaissance attack
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "reconnaissance"}'
+
+# View alerts
+curl http://localhost:8084/alerts | jq
+
+# View incidents
+curl http://localhost:8084/incidents | jq
+```

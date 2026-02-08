@@ -6,162 +6,70 @@ sidebar_position: 2
 
 Pre-built attack scenarios for testing the detection engine.
 
-## Available Scenarios
+## Available Attack Modes
+
+The simulator supports four attack modes that can be triggered via API:
 
 ```mermaid
 flowchart TB
-    subgraph Reconnaissance["Reconnaissance"]
-        A1["Device Scan"]
-        A2["Register Enumeration"]
-        A3["Function Probe"]
+    subgraph Modes["Attack Modes"]
+        A1["reconnaissance<br/><i>Device scanning</i>"]
+        A2["write_attack<br/><i>Unauthorized writes</i>"]
+        A3["replay<br/><i>Traffic replay</i>"]
+        A4["dos<br/><i>Flood attack</i>"]
     end
 
-    subgraph Exploitation["Exploitation"]
-        A4["Command Injection"]
-        A5["Value Manipulation"]
-        A6["DoS Flood"]
-    end
-
-    subgraph Persistence["Persistence"]
-        A7["Replay Attack"]
-        A8["MitM Simulation"]
-    end
-
-    style Reconnaissance fill:#457b9d,color:#fff
-    style Exploitation fill:#e63946,color:#fff
-    style Persistence fill:#f4a261,color:#000
+    style A1 fill:#457b9d,color:#fff
+    style A2 fill:#e63946,color:#fff
+    style A3 fill:#f4a261,color:#000
+    style A4 fill:#e63946,color:#fff
 ```
 
-## Scenario: Device Scan
+## Scenario: Reconnaissance
 
-Enumerate devices on the ICS network.
+Simulates device enumeration using Read Device Identification (FC 0x2B).
 
 ### Attack Pattern
 
 ```mermaid
 sequenceDiagram
-    participant ATK as Attacker
-    participant PLC1 as 192.168.1.1
-    participant PLC2 as 192.168.1.2
-    participant PLC3 as 192.168.1.3
-    participant PLCn as 192.168.1.n
+    participant ATK as Attacker (HMI)
+    participant PLC1 as PLC 1
+    participant PLC2 as PLC 2
+    participant PLC3 as PLC 3
 
-    loop For each IP in range
-        ATK->>PLC1: Read Device ID (FC 43)
-        PLC1-->>ATK: Response / Timeout
-        ATK->>PLC2: Read Device ID (FC 43)
-        PLC2-->>ATK: Response / Timeout
-        ATK->>PLC3: Read Device ID (FC 43)
-        PLC3-->>ATK: Response / Timeout
-        ATK->>PLCn: Read Device ID (FC 43)
+    loop Scanning
+        ATK->>PLC1: Read Device ID (FC 0x2B)
+        PLC1-->>ATK: Device Info
+        ATK->>PLC2: Read Device ID (FC 0x2B)
+        PLC2-->>ATK: Device Info
+        ATK->>PLC3: Read Device ID (FC 0x2B)
+        PLC3-->>ATK: Device Info
     end
 ```
 
-### Configuration
+### Trigger
 
-```yaml
-# attacks/device_scan.yaml
-name: "device_scan"
-description: "Enumerate Modbus devices on subnet"
-mitre_technique: "T0846"
-
-parameters:
-  target_subnet: "192.168.1.0/24"
-  scan_rate: 10  # IPs per second
-  function_code: 43  # Read Device Identification
-  timeout_ms: 500
-
-phases:
-  - name: "scan"
-    duration_seconds: 60
-    actions:
-      - type: "sequential_ip_scan"
-        start_ip: "192.168.1.1"
-        end_ip: "192.168.1.254"
+```bash
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "reconnaissance"}'
 ```
 
 ### Expected Detection
 
 | Feature | Normal | During Attack |
 |---------|--------|---------------|
-| `unique_destinations_5m` | 5-10 | 50+ |
-| `scan_score_15m` | < 0.1 | > 0.8 |
-| `failed_connections_5m` | 0-2 | 200+ |
+| `fc_unique_count` | 2-4 | 5+ (includes 0x2B) |
+| `fc_diagnostic_ratio` | < 0.1 | > 0.5 |
 
-**Alert:** `RECONNAISSANCE` severity `HIGH`
-
----
-
-## Scenario: Register Enumeration
-
-Discover register addresses and values.
-
-### Attack Pattern
-
-```mermaid
-sequenceDiagram
-    participant ATK as Attacker
-    participant PLC as Target PLC
-
-    loop For each address range
-        ATK->>PLC: Read Registers 0-100 (FC 03)
-        PLC-->>ATK: Values / Exception
-        ATK->>PLC: Read Registers 100-200 (FC 03)
-        PLC-->>ATK: Values / Exception
-        ATK->>PLC: Read Registers 200-300 (FC 03)
-        PLC-->>ATK: Exception (invalid address)
-    end
-```
-
-### Configuration
-
-```yaml
-# attacks/register_enum.yaml
-name: "register_enumeration"
-description: "Enumerate all registers on target PLC"
-mitre_technique: "T0861"
-
-parameters:
-  target_ip: "192.168.1.10"
-  target_unit_id: 1
-  scan_rate: 50  # Requests per second
-  register_step: 100
-
-phases:
-  - name: "holding_registers"
-    duration_seconds: 30
-    actions:
-      - type: "register_scan"
-        function_code: 3
-        start_address: 0
-        end_address: 10000
-        quantity: 100
-
-  - name: "input_registers"
-    duration_seconds: 30
-    actions:
-      - type: "register_scan"
-        function_code: 4
-        start_address: 0
-        end_address: 10000
-        quantity: 100
-```
-
-### Expected Detection
-
-| Feature | Normal | During Attack |
-|---------|--------|---------------|
-| `unique_registers_5m` | 10-50 | 500+ |
-| `read_count_1m` | 60 | 3000+ |
-| `function_code_entropy_5m` | Low | Medium |
-
-**Alert:** `RECONNAISSANCE` severity `MEDIUM`
+**Expected Alert:** `RECONNAISSANCE` severity `HIGH`
 
 ---
 
-## Scenario: Command Injection
+## Scenario: Write Attack
 
-Send unauthorized write commands.
+Simulates unauthorized write operations targeting PLC registers.
 
 ### Attack Pattern
 
@@ -171,132 +79,73 @@ sequenceDiagram
     participant PLC as Target PLC
     participant PROC as Physical Process
 
-    Note over ATK,PROC: Attacker sends malicious write
+    Note over ATK,PROC: Attacker sends malicious writes
 
-    ATK->>PLC: Write Register 100 = 999 (FC 06)
+    ATK->>PLC: Write Single Register (FC 0x06)
     PLC-->>ATK: Write confirmed
-    PLC->>PROC: Set pump speed to 999
-    Note over PROC: Process disruption!
+    ATK->>PLC: Write Multiple Registers (FC 0x10)
+    PLC-->>ATK: Write confirmed
+    ATK->>PLC: Write Single Coil (FC 0x05)
+    PLC-->>ATK: Write confirmed
 ```
 
-### Configuration
+### Trigger
 
-```yaml
-# attacks/command_injection.yaml
-name: "command_injection"
-description: "Inject malicious write commands"
-mitre_technique: "T0855"
-
-parameters:
-  target_ip: "192.168.1.10"
-  target_unit_id: 1
-
-phases:
-  - name: "single_write"
-    duration_seconds: 10
-    actions:
-      - type: "write_register"
-        function_code: 6
-        address: 100
-        value: 999  # Out of normal range
-
-  - name: "multiple_writes"
-    duration_seconds: 20
-    actions:
-      - type: "write_multiple"
-        function_code: 16
-        address: 200
-        values: [0, 0, 0, 0, 0]  # Clear all outputs
+```bash
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "write_attack"}'
 ```
 
 ### Expected Detection
 
 | Feature | Normal | During Attack |
 |---------|--------|---------------|
-| `write_count_1m` | 0-2 | 10+ |
-| `read_write_ratio_5m` | > 50 | < 5 |
-| `out_of_range_values_5m` | 0 | 1+ |
+| `fc_write_ratio` | < 0.2 | > 0.5 |
+| `fc_read_ratio` | > 0.8 | < 0.5 |
 
-**Alert:** `VALUE_MANIPULATION` severity `CRITICAL`
-
----
-
-## Scenario: DoS Flood
-
-Overwhelm PLC with requests.
-
-### Attack Pattern
-
-```mermaid
-flowchart LR
-    ATK["Attacker"]
-    PLC["Target PLC"]
-
-    ATK -->|"1000+ req/sec"| PLC
-
-    style ATK fill:#e63946,color:#fff
-```
-
-### Configuration
-
-```yaml
-# attacks/dos_flood.yaml
-name: "dos_flood"
-description: "Flood target with requests"
-mitre_technique: "T0814"
-
-parameters:
-  target_ip: "192.168.1.10"
-  target_unit_id: 1
-  flood_rate: 1000  # Requests per second
-
-phases:
-  - name: "flood"
-    duration_seconds: 60
-    actions:
-      - type: "flood"
-        function_code: 3
-        address: 0
-        quantity: 10
-```
-
-### Expected Detection
-
-| Feature | Normal | During Attack |
-|---------|--------|---------------|
-| `msg_count_1m` | 60 | 60000+ |
-| `burst_score_1m` | < 0.2 | > 0.9 |
-| `iat_mean_1m` | 1000ms | 1ms |
-
-**Alert:** `TIMING_ANOMALY` severity `CRITICAL`
+**Expected Alert:** `COMMAND_INJECTION` severity `CRITICAL`
 
 ---
 
 ## Scenario: Replay Attack
 
-Replay captured legitimate traffic.
+:::note Planned Feature
+Replay attack simulation (replaying captured traffic) is defined but not fully implemented. Currently behaves the same as normal traffic.
+:::
 
-### Configuration
+### Trigger
 
-```yaml
-# attacks/replay.yaml
-name: "replay_attack"
-description: "Replay captured traffic"
-mitre_technique: "T0839"
-
-parameters:
-  pcap_file: "captured_traffic.pcap"
-  target_offset_ip: "0.0.0.0"  # Keep original IPs
-  speed_multiplier: 1.0
-
-phases:
-  - name: "replay"
-    duration_seconds: 300
-    actions:
-      - type: "pcap_replay"
-        file: "{{ pcap_file }}"
-        multiplier: "{{ speed_multiplier }}"
+```bash
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "replay"}'
 ```
+
+---
+
+## Scenario: DoS Flood
+
+:::note Planned Feature
+DoS flood simulation is defined but not fully implemented. Currently behaves the same as normal traffic.
+:::
+
+### Trigger
+
+```bash
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "dos"}'
+```
+
+### Expected Detection (when implemented)
+
+| Feature | Normal | During Attack |
+|---------|--------|---------------|
+| `message_count` | 100/min | 60000+/min |
+| `iat_mean` | 600ms | < 1ms |
+
+**Expected Alert:** `VOLUME_ANOMALY` severity `CRITICAL`
 
 ---
 
@@ -305,65 +154,77 @@ phases:
 ### Via API
 
 ```bash
-# Start an attack scenario
-curl -X POST http://localhost:8081/attack/start \
+# Start an attack
+curl -X POST http://localhost:8083/attack/start \
   -H "Content-Type: application/json" \
-  -d '{
-    "scenario": "device_scan",
-    "parameters": {
-      "target_subnet": "192.168.1.0/24",
-      "scan_rate": 20
-    }
-  }'
+  -d '{"mode": "reconnaissance"}'
 
-# Check attack status
-curl http://localhost:8081/attack/status
+# Check current status
+curl http://localhost:8083/status
 
-# Stop attack
-curl -X POST http://localhost:8081/attack/stop
+# Stop attack (returns to normal traffic)
+curl -X POST http://localhost:8083/attack/stop
 ```
 
-### Via CLI
+### Via Make Targets
 
 ```bash
-# Run scenario
-./simulator attack run device_scan \
-  --target-subnet 192.168.1.0/24 \
-  --rate 20
+# Start reconnaissance attack
+make attack-recon
 
-# List available scenarios
-./simulator attack list
-
-# Show scenario details
-./simulator attack describe command_injection
+# Stop any running attack
+make attack-stop
 ```
+
+## Monitoring Attack Effects
+
+### Watch Feature Changes
+
+```bash
+# Consume features topic to see impact
+docker compose exec kafka kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic ics.features \
+  --from-latest
+```
+
+### Watch Anomaly Scores
+
+```bash
+# Consume anomalies topic
+docker compose exec kafka kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic ics.anomalies \
+  --from-latest
+```
+
+### View in Dashboard
+
+Open http://localhost:5173 to see:
+- Real-time anomaly score changes
+- Alert generation
+- Feature deviations
 
 ## Creating Custom Scenarios
 
-```yaml
-# attacks/custom.yaml
-name: "my_custom_attack"
-description: "Custom attack scenario"
-mitre_technique: "T0000"
+The current simulator uses hardcoded attack modes. To add new scenarios:
 
-parameters:
-  target_ip:
-    type: string
-    required: true
-  intensity:
-    type: float
-    default: 1.0
-    min: 0.1
-    max: 10.0
+1. Add mode to `AttackConfig` validation in `main.py`
+2. Implement logic in `ModbusGenerator.generate_message()`
+3. Handle the mode in the generator switch statement
 
-phases:
-  - name: "phase_1"
-    duration_seconds: 30
-    actions:
-      - type: "custom_action"
-        script: |
-          # Python code for custom attack logic
-          for i in range(100):
-              send_modbus_read(target_ip, address=i*10)
-              await sleep(1 / intensity)
+Example extension point in `packages/simulator/src/main.py`:
+
+```python
+def generate_message(self, attack_mode: Optional[str] = None) -> dict:
+    if attack_mode == "reconnaissance":
+        function_code = 0x2B  # Read Device Identification
+    elif attack_mode == "write_attack":
+        function_code = random.choice([0x06, 0x10, 0x05])
+    elif attack_mode == "my_custom_attack":
+        # Add your custom logic here
+        function_code = 0x08  # Diagnostics
+    else:
+        # Normal weighted selection
+        ...
 ```

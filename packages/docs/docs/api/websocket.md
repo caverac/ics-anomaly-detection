@@ -6,46 +6,49 @@ sidebar_position: 2
 
 Real-time event streaming via WebSocket.
 
-## Connection
+:::note Not Implemented
+The WebSocket API described below is a planned feature for real-time alert streaming. It is not currently implemented in the system.
+
+For real-time monitoring, use:
+- **Dashboard**: http://localhost:5173 (polls alerting API)
+- **Kafka Consumer**: Direct subscription to `ics.anomalies` or `ics.alerts` topics
+:::
+
+## Planned Architecture
+
+```mermaid
+flowchart LR
+    subgraph Services["Backend"]
+        ALERT["Alerting Service"]
+        KAFKA["Kafka"]
+    end
+
+    subgraph Clients["Clients"]
+        DASH["Dashboard"]
+        SIEM["SIEM"]
+    end
+
+    KAFKA --> ALERT
+    ALERT -->|"WebSocket"| DASH
+    ALERT -->|"WebSocket"| SIEM
+```
+
+## Planned Connection
 
 ```javascript
-const ws = new WebSocket('ws://localhost:8080/ws')
+const ws = new WebSocket('ws://localhost:8084/ws')
 
 ws.onopen = () => {
-  // Authenticate
-  ws.send(JSON.stringify({
-    type: 'auth',
-    token: 'your-jwt-token'
-  }))
+  console.log('Connected to alert stream')
+}
+
+ws.onmessage = (event) => {
+  const alert = JSON.parse(event.data)
+  console.log('New alert:', alert)
 }
 ```
 
-## Subscriptions
-
-### Subscribe to Alerts
-
-```javascript
-ws.send(JSON.stringify({
-  type: 'subscribe',
-  channel: 'alerts',
-  filters: {
-    severity: ['critical', 'high'],
-    type: ['RECONNAISSANCE', 'PROTOCOL_VIOLATION']
-  }
-}))
-```
-
-### Subscribe to Metrics
-
-```javascript
-ws.send(JSON.stringify({
-  type: 'subscribe',
-  channel: 'metrics',
-  interval_seconds: 5
-}))
-```
-
-## Message Types
+## Planned Message Types
 
 ### Alert Event
 
@@ -55,67 +58,77 @@ ws.send(JSON.stringify({
   "data": {
     "id": "alert-123",
     "timestamp": "2024-01-15T10:30:00Z",
-    "severity": "high",
-    "type": "RECONNAISSANCE",
+    "severity": "HIGH",
+    "anomaly_type": "RECONNAISSANCE",
     "source_ip": "192.168.1.50",
-    "anomaly_score": 0.89
+    "ensemble_score": 0.89
   }
 }
 ```
 
-### Metrics Update
+### Incident Update
 
 ```json
 {
-  "type": "metrics",
+  "type": "incident_update",
   "data": {
-    "timestamp": "2024-01-15T10:30:00Z",
-    "inferences_per_second": 3200,
-    "alerts_last_hour": 5,
-    "anomaly_score_avg": 0.12
+    "id": "incident-456",
+    "status": "ACTIVE",
+    "priority": "P2",
+    "anomaly_count": 5
   }
 }
 ```
 
-## Example Client
+## Current Alternatives
+
+### Dashboard Auto-Refresh
+
+The React dashboard polls the alerting API every 5 seconds:
 
 ```typescript
-class AlertClient {
-  private ws: WebSocket
-  private reconnectAttempts = 0
+// Dashboard uses React Query with auto-refetch
+const { data: alerts } = useQuery({
+  queryKey: ['alerts'],
+  queryFn: fetchAlerts,
+  refetchInterval: 5000,
+})
+```
 
-  connect(token: string) {
-    this.ws = new WebSocket('ws://localhost:8080/ws')
+### Direct Kafka Subscription
 
-    this.ws.onopen = () => {
-      this.authenticate(token)
-      this.subscribe()
-      this.reconnectAttempts = 0
-    }
+For programmatic access, subscribe directly to Kafka topics:
 
-    this.ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data)
-      this.handleMessage(msg)
-    }
+```bash
+# Watch anomalies in real-time
+docker compose exec kafka kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic ics.anomalies \
+  --from-latest
 
-    this.ws.onclose = () => {
-      this.reconnect(token)
-    }
-  }
+# Watch alerts
+docker compose exec kafka kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --topic ics.alerts \
+  --from-latest
+```
 
-  private handleMessage(msg: any) {
-    switch (msg.type) {
-      case 'alert':
-        this.onAlert(msg.data)
-        break
-      case 'metrics':
-        this.onMetrics(msg.data)
-        break
-    }
-  }
+### Python Kafka Consumer
 
-  private onAlert(alert: Alert) {
-    console.log(`New alert: ${alert.severity} - ${alert.type}`)
-  }
-}
+```python
+from confluent_kafka import Consumer
+
+consumer = Consumer({
+    'bootstrap.servers': 'localhost:9092',
+    'group.id': 'my-alert-consumer',
+    'auto.offset.reset': 'latest'
+})
+
+consumer.subscribe(['ics.alerts'])
+
+while True:
+    msg = consumer.poll(1.0)
+    if msg is not None:
+        alert = json.loads(msg.value())
+        print(f"Alert: {alert['title']}")
 ```

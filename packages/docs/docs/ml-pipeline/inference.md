@@ -6,6 +6,10 @@ sidebar_position: 5
 
 Real-time anomaly scoring in production.
 
+:::note Implementation Notes
+The current implementation uses `confluent-kafka` (not aiokafka) and loads models directly from disk using scikit-learn and PyTorch (not ONNX runtime or MLflow registry). The patterns shown below represent the target architecture.
+:::
+
 ## Inference Architecture
 
 ```mermaid

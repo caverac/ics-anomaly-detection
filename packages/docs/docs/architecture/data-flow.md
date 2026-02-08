@@ -37,8 +37,7 @@ flowchart TB
     end
 
     subgraph Output["6. Output"]
-        DB["PostgreSQL<br/><i>Alert storage</i>"]
-        TS["TimescaleDB<br/><i>Time-series</i>"]
+        REDIS["Redis<br/><i>Incident state</i>"]
         SIEM["SIEM<br/><i>External</i>"]
         DASH["Dashboard<br/><i>Real-time</i>"]
     end
@@ -49,12 +48,11 @@ flowchart TB
     PARSE --> K1
     K1 --> FEAT
     FEAT --> K2
-    FEAT -.->|"Store features"| TS
     K2 --> INF
     INF --> K3
     K3 --> AM
+    AM --> REDIS
     AM --> K4
-    K4 --> DB
     K4 --> SIEM
     K4 --> DASH
 
@@ -290,38 +288,31 @@ gantt
 ```mermaid
 sequenceDiagram
     participant KAFKA as Kafka (ics.anomalies)
-    participant THRESH as Threshold Check
     participant CORR as Correlator
     participant DEDUP as Deduplicator
-    participant ENRICH as Enricher
-    participant STORE as PostgreSQL
+    participant ESCAL as Escalation Manager
+    participant REDIS as Redis
     participant NOTIFY as Notifier
 
-    KAFKA->>THRESH: Scored event
-    THRESH->>THRESH: Check against threshold
+    KAFKA->>CORR: Anomaly result
+    CORR->>CORR: Find/create incident (5min window)
+    CORR->>REDIS: Update incident
 
-    alt Score >= threshold
-        THRESH->>CORR: Potential alert
-        CORR->>CORR: Find related events (5min window)
-        CORR->>DEDUP: Correlated alert
+    CORR->>DEDUP: Check for duplicates
+    DEDUP->>REDIS: Check dedup key
 
-        DEDUP->>DEDUP: Check similarity hash
-        alt New alert
-            DEDUP->>ENRICH: New alert
-            ENRICH->>ENRICH: Add device context
-            ENRICH->>ENRICH: Add historical data
-            ENRICH->>ENRICH: Map to MITRE ATT&CK
+    alt New alert
+        DEDUP->>ESCAL: Process alert
+        ESCAL->>ESCAL: Calculate priority (P4-P1)
+        ESCAL->>REDIS: Store alert
 
-            par Parallel dispatch
-                ENRICH->>STORE: Store alert
-                ENRICH->>NOTIFY: Send notifications
-            end
-        else Duplicate
-            DEDUP->>DEDUP: Increment counter
-            Note over DEDUP: Suppress notification
+        par Parallel dispatch
+            ESCAL->>KAFKA: Publish to ics.alerts
+            ESCAL->>NOTIFY: Send notifications
         end
-    else Score < threshold
-        THRESH->>THRESH: Discard
+    else Duplicate
+        DEDUP->>DEDUP: Suppress
+        Note over DEDUP: Within 60s window
     end
 ```
 
@@ -329,26 +320,35 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph Hot["Hot Storage (7 days)"]
-        R1["Raw messages<br/><i>Kafka</i>"]
-        F1["Feature vectors<br/><i>Kafka</i>"]
+    subgraph Hot["Hot Storage"]
+        R1["Raw messages<br/><i>Kafka (7 days)</i>"]
+        F1["Feature vectors<br/><i>Kafka (7 days)</i>"]
+        A1["Anomalies<br/><i>Kafka (7 days)</i>"]
     end
 
-    subgraph Warm["Warm Storage (90 days)"]
-        F2["Features<br/><i>TimescaleDB</i>"]
-        A1["Alerts<br/><i>PostgreSQL</i>"]
+    subgraph State["State Storage"]
+        I1["Incidents<br/><i>Redis (24 hours)</i>"]
+        AL1["Alerts<br/><i>Redis (7 days)</i>"]
+        D1["Dedup keys<br/><i>Redis (60 seconds)</i>"]
     end
 
-    subgraph Cold["Cold Storage (1 year)"]
-        F3["Compressed features<br/><i>S3/Glacier</i>"]
-        A2["Alert archive<br/><i>S3/Glacier</i>"]
-    end
-
-    R1 -->|"7d TTL"| F3
-    F1 -->|"Continuous"| F2
-    F2 -->|"90d rotation"| F3
-    A1 -->|"90d rotation"| A2
+    R1 --> F1
+    F1 --> A1
+    A1 --> AL1
+    AL1 --> I1
 ```
+
+**Retention Settings:**
+
+| Data | Storage | TTL |
+|------|---------|-----|
+| Raw packets | Kafka | 7 days |
+| Parsed messages | Kafka | 7 days |
+| Feature vectors | Kafka | 7 days |
+| Anomaly results | Kafka | 7 days |
+| Alerts | Redis | 7 days |
+| Incidents | Redis | 24 hours |
+| Deduplication keys | Redis | 60 seconds |
 
 ## Throughput & Scaling
 

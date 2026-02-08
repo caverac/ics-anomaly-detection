@@ -41,19 +41,16 @@ Single-machine deployment for local development and testing.
 flowchart TB
     subgraph Docker["Docker Compose"]
         subgraph Services["Core Services"]
-            CAP["packet-capture"]
-            PARSE["protocol-parser"]
+            SIM["simulator"]
+            PARSE["parser"]
             FEAT["feature-engine"]
-            INF["inference-service"]
-            ALERT["alert-manager"]
-            API["rest-api"]
+            INF["anomaly-detection"]
+            ALERT["alerting"]
             DASH["dashboard"]
         end
 
         subgraph Infra["Infrastructure"]
-            KAFKA["kafka + zookeeper"]
-            PG["postgres"]
-            TS["timescaledb"]
+            KAFKA["kafka (KRaft)"]
             REDIS["redis"]
         end
 
@@ -63,22 +60,16 @@ flowchart TB
         end
     end
 
-    subgraph Simulator["Traffic Simulator"]
-        SIM["ics-simulator<br/><i>Generates test traffic</i>"]
-    end
-
-    SIM -->|"Virtual NIC"| CAP
-    CAP --> PARSE
+    SIM -->|"ics.raw.packets"| KAFKA
+    KAFKA --> PARSE
     PARSE --> KAFKA
     KAFKA --> FEAT
+    FEAT --> KAFKA
     KAFKA --> INF
+    INF --> KAFKA
     KAFKA --> ALERT
-    ALERT --> PG
-    FEAT --> TS
-    API --> PG
-    API --> TS
-    API --> REDIS
-    DASH --> API
+    ALERT --> REDIS
+    DASH --> ALERT
     PROM --> GRAF
 
     style SIM fill:#f4a261,color:#000
@@ -88,12 +79,15 @@ flowchart TB
 
 | Component | CPU | Memory | Storage |
 |-----------|-----|--------|---------|
-| Kafka + ZK | 1 core | 2 GB | 10 GB |
-| TimescaleDB | 1 core | 2 GB | 20 GB |
-| PostgreSQL | 0.5 core | 512 MB | 5 GB |
-| Redis | 0.5 core | 512 MB | 1 GB |
-| All services | 2 cores | 4 GB | - |
-| **Total** | **5 cores** | **9 GB** | **36 GB** |
+| Kafka (KRaft) | 1 core | 1 GB | 10 GB |
+| Redis | 0.5 core | 256 MB | 1 GB |
+| Simulator | 0.5 core | 256 MB | - |
+| Parser | 1 core | 512 MB | - |
+| Feature Engine | 0.5 core | 512 MB | - |
+| Anomaly Detection | 1 core | 1 GB | - |
+| Alerting | 0.5 core | 256 MB | - |
+| Dashboard | 0.5 core | 256 MB | - |
+| **Total** | **~6 cores** | **~5 GB** | **11 GB** |
 
 ---
 

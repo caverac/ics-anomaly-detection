@@ -12,8 +12,14 @@ This guide covers setting up the development environment.
 |------|---------|---------|
 | Docker | 24+ | Container runtime |
 | Docker Compose | 2.20+ | Multi-container orchestration |
-| Node.js | 22+ | TypeScript services |
-| Python | 3.11+ | ML services |
+| Node.js | 22+ | Monorepo management, dashboard |
+| Yarn | 4+ | Package manager |
+
+### Optional (for local development)
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Python | 3.12+ | ML services |
 | Go | 1.21+ | Packet capture service |
 | Rust | 1.75+ | Protocol parser |
 
@@ -26,121 +32,107 @@ The fastest way to get started:
 git clone https://github.com/caverac/ics-anomaly-detection.git
 cd ics-anomaly-detection
 
-# Start all services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Access the dashboard
-open http://localhost:3000
-```
-
-## Development Setup
-
-For local development with hot reloading:
-
-### 1. Install Dependencies
-
-```bash
-# Install Node.js dependencies (monorepo)
+# Install dependencies
 yarn install
 
-# Install Python dependencies
-cd packages/ml
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+# Start the full pipeline with dashboard
+make dev-dashboard
 
-# Install Go dependencies
-cd packages/capture
-go mod download
-
-# Install Rust dependencies
-cd packages/parser
-cargo build
+# Access the dashboard
+open http://localhost:3090
 ```
 
-### 2. Start Infrastructure
+## Development Commands
+
+| Command | Description |
+|---------|-------------|
+| `make dev` | Start Kafka + Simulator + Parser + Feature Engine |
+| `make dev-full` | Add Anomaly Detection |
+| `make dev-alerting` | Add Alerting Service |
+| `make dev-dashboard` | Add React Dashboard (full pipeline) |
+| `make debug` | Add Kafka UI at localhost:8080 |
+| `make monitoring` | Add Prometheus + Grafana |
+| `make clean` | Remove all containers and volumes |
+
+## Local Development Setup
+
+For development with hot reloading on individual services:
+
+### 1. Start Infrastructure
 
 ```bash
-# Start only infrastructure services
-docker compose up -d kafka timescaledb postgres redis
+# Start Kafka and Redis
+make up
 
 # Verify services are healthy
 docker compose ps
 ```
 
-### 3. Start Services
+### 2. Run Services Locally
 
-In separate terminals:
+Each service can run independently. In separate terminals:
 
 ```bash
-# Terminal 1: Packet capture (requires sudo for raw sockets)
-cd packages/capture
-sudo go run main.go
+# Terminal 1: Simulator (generates test traffic)
+cd packages/simulator
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.main
 
-# Terminal 2: Protocol parser
+# Terminal 2: Parser (Rust)
 cd packages/parser
 cargo run
 
-# Terminal 3: Feature engine
-cd packages/ml
-python -m feature_engine.main
+# Terminal 3: Feature Engine
+cd packages/feature-engine
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.main
 
-# Terminal 4: Inference service
-cd packages/ml
-python -m inference.main
+# Terminal 4: Anomaly Detection
+cd packages/anomaly-detection
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.main
 
-# Terminal 5: API
-cd packages/api
-yarn dev
+# Terminal 5: Alerting
+cd packages/alerting
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python -m src.main
 
 # Terminal 6: Dashboard
 cd packages/dashboard
-yarn dev
+npm install
+npm run dev
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-Create a `.env` file in the project root:
+Key environment variables (with defaults):
 
 ```bash
 # Kafka
 KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 
-# PostgreSQL
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=ics_anomaly
-POSTGRES_USER=ics
-POSTGRES_PASSWORD=ics_password
-
-# TimescaleDB
-TIMESCALE_HOST=localhost
-TIMESCALE_PORT=5433
-TIMESCALE_DB=ics_timeseries
-TIMESCALE_USER=ics
-TIMESCALE_PASSWORD=ics_password
-
-# Redis
+# Redis (for alerting service)
 REDIS_URL=redis://localhost:6379
 
-# ML
-MODEL_REGISTRY_PATH=./models
-INFERENCE_BATCH_SIZE=100
-ANOMALY_THRESHOLD=0.7
+# Service ports
+SIMULATOR_PORT=8083
+ALERTING_PORT=8084
+DASHBOARD_PORT=3090
 
-# API
-API_PORT=8080
-JWT_SECRET=your-secret-key
+# Logging
+LOG_LEVEL=INFO
+LOG_FORMAT=json  # or 'console' for development
 ```
 
-### Network Interface
+### Network Interface (Live Capture)
 
-For live capture, specify the network interface:
+For live packet capture (advanced):
 
 ```bash
 # List available interfaces
@@ -152,23 +144,45 @@ export CAPTURE_INTERFACE=eth0
 
 ## Verify Installation
 
-Run the health check:
+### 1. Check Services
 
 ```bash
-# Check all services
-./scripts/healthcheck.sh
+docker compose ps
+```
 
-# Expected output:
-# ✓ Kafka: healthy
-# ✓ PostgreSQL: healthy
-# ✓ TimescaleDB: healthy
-# ✓ Redis: healthy
-# ✓ Capture: healthy
-# ✓ Parser: healthy
-# ✓ Feature Engine: healthy
-# ✓ Inference: healthy
-# ✓ API: healthy
-# ✓ Dashboard: healthy
+Expected output:
+```
+NAME              STATUS
+ics-kafka         running (healthy)
+ics-redis         running (healthy)
+ics-simulator     running
+ics-parser        running
+ics-feature-engine running
+```
+
+### 2. Check Data Flow
+
+```bash
+# Watch raw packets
+make kafka-consume-raw
+
+# Watch parsed messages
+make kafka-consume-parsed
+
+# Watch features
+make kafka-consume-features
+```
+
+### 3. Test Attack Simulation
+
+```bash
+# Start reconnaissance attack
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "reconnaissance"}'
+
+# Check alerts (if alerting is running)
+curl http://localhost:8084/alerts | jq
 ```
 
 ## Troubleshooting
@@ -180,25 +194,38 @@ Run the health check:
 docker compose logs kafka
 
 # Verify topics created
-docker compose exec kafka kafka-topics.sh --list --bootstrap-server localhost:9092
+make kafka-topics
+
+# Restart with clean state
+make clean && make up
+```
+
+### Python Import Errors
+
+```bash
+# Ensure you're in a virtual environment
+source .venv/bin/activate
+
+# Reinstall dependencies
+pip install -r requirements.txt
 ```
 
 ### Permission Denied (Packet Capture)
 
 ```bash
 # Option 1: Run with sudo
-sudo go run main.go
+sudo go run ./cmd/capture
 
 # Option 2: Set capabilities (Linux)
 sudo setcap cap_net_raw,cap_net_admin=eip ./capture
 ```
 
-### GPU Not Detected (ML Inference)
+### Port Already in Use
 
 ```bash
-# Check CUDA availability
-python -c "import torch; print(torch.cuda.is_available())"
+# Find process using port
+lsof -i :8083
 
-# If false, install CUDA toolkit or use CPU mode
-export INFERENCE_DEVICE=cpu
+# Kill if needed
+kill -9 <PID>
 ```

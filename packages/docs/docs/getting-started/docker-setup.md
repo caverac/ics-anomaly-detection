@@ -16,10 +16,20 @@ flowchart TB
             REDIS["Redis<br/>:6379"]
         end
 
-        subgraph Services["Services"]
+        subgraph Ingestion["Data Ingestion"]
             SIM["Simulator<br/><i>Python</i><br/>:8083"]
-            PARSER["Parser<br/><i>Rust</i><br/>:8082"]
             CAP["Capture<br/><i>Go</i><br/>:8081"]
+            PARSER["Parser<br/><i>Rust</i><br/>:8082"]
+            FEAT["Feature Engine<br/><i>Python</i>"]
+        end
+
+        subgraph ML["ML Pipeline"]
+            ANOMALY["Anomaly Detection<br/><i>Python</i>"]
+            ALERT["Alerting<br/><i>Python</i><br/>:8084"]
+        end
+
+        subgraph UI["User Interface"]
+            DASH["Dashboard<br/><i>React</i><br/>:3090"]
         end
 
         subgraph Monitor["Monitoring (optional)"]
@@ -34,37 +44,53 @@ flowchart TB
 
     SIM -->|"ics.raw.packets"| KAFKA
     CAP -->|"ics.raw.packets"| KAFKA
-    KAFKA -->|"consume"| PARSER
+    KAFKA --> PARSER
     PARSER -->|"ics.parsed.*"| KAFKA
+    KAFKA --> FEAT
+    FEAT -->|"ics.features"| KAFKA
+    KAFKA --> ANOMALY
+    ANOMALY -->|"ics.anomalies"| KAFKA
+    KAFKA --> ALERT
+    ALERT --> REDIS
+    ALERT -->|"ics.alerts"| KAFKA
+    DASH --> ALERT
 
-    PROM --> Services
+    PROM --> Ingestion
+    PROM --> ML
     GRAF --> PROM
 
     style KAFKA fill:#e63946,color:#fff
     style SIM fill:#2a9d8f,color:#fff
     style PARSER fill:#457b9d,color:#fff
+    style DASH fill:#9b59b6,color:#fff
 ```
 
 ## Quick Start
 
 ```bash
-# Start everything for development
-make dev
+# Start the full pipeline with dashboard
+make dev-dashboard
 ```
 
 This starts:
 - **Kafka** - Message broker (KRaft mode, no Zookeeper)
-- **Redis** - Caching layer
+- **Redis** - State storage for alerting
 - **Simulator** - Generates test Modbus traffic
 - **Parser** - Parses ICS protocols
+- **Feature Engine** - Extracts ML features from time windows
+- **Anomaly Detection** - ML ensemble (Isolation Forest, LSTM, One-Class SVM)
+- **Alerting** - Correlation, deduplication, notifications
+- **Dashboard** - React monitoring UI
 
 ## Available Commands
 
 | Command | Description |
 |---------|-------------|
 | `make up` | Start core infrastructure (Kafka, Redis) |
-| `make dev` | Start infra + simulator + parser |
-| `make simulator` | Start with simulator only |
+| `make dev` | Start infra + simulator + parser + feature-engine |
+| `make dev-full` | Add anomaly detection |
+| `make dev-alerting` | Add alerting service |
+| `make dev-dashboard` | Full pipeline with React dashboard |
 | `make monitoring` | Add Prometheus + Grafana |
 | `make debug` | Add Kafka UI for inspection |
 | `make down` | Stop all services |
@@ -75,10 +101,12 @@ This starts:
 
 | Service | URL | Description |
 |---------|-----|-------------|
-| Kafka | `localhost:9094` | External broker access |
-| Redis | `localhost:6379` | Cache |
+| Dashboard | `localhost:3090` | React monitoring UI |
+| Alerting API | `localhost:8084` | Alert/incident management |
 | Simulator | `localhost:8083` | Traffic generation API |
 | Parser | `localhost:8082/metrics` | Prometheus metrics |
+| Kafka | `localhost:9094` | External broker access |
+| Redis | `localhost:6379` | State storage |
 | Kafka UI | `localhost:8080` | Topic browser (debug profile) |
 | Prometheus | `localhost:9090` | Metrics storage (monitoring profile) |
 | Grafana | `localhost:3001` | Dashboards (monitoring profile) |
@@ -167,13 +195,34 @@ curl -X POST http://localhost:8083/attack/stop
 
 ## Profiles
 
-Docker Compose profiles let you start optional services:
+Docker Compose profiles let you start different service combinations:
 
-### Development (default)
+### Basic Pipeline
 
 ```bash
 make dev
-# Starts: kafka, redis, kafka-init, simulator, parser
+# Starts: kafka, redis, simulator, parser, feature-engine
+```
+
+### With Anomaly Detection
+
+```bash
+make dev-full
+# Adds: anomaly-detection
+```
+
+### With Alerting
+
+```bash
+make dev-alerting
+# Adds: alerting service with API on port 8084
+```
+
+### Full Stack with Dashboard
+
+```bash
+make dev-dashboard
+# Adds: React dashboard on port 3090
 ```
 
 ### With Monitoring
@@ -215,13 +264,17 @@ Live capture requires:
 docker compose ps
 ```
 
-Expected output:
+Expected output (with `make dev-dashboard`):
 ```
-NAME            STATUS
-ics-kafka       running (healthy)
-ics-redis       running (healthy)
-ics-simulator   running
-ics-parser      running
+NAME                   STATUS
+ics-kafka              running (healthy)
+ics-redis              running (healthy)
+ics-simulator          running
+ics-parser             running
+ics-feature-engine     running
+ics-anomaly-detection  running
+ics-alerting           running
+ics-dashboard          running
 ```
 
 ### 2. Check Kafka Topics
@@ -290,6 +343,10 @@ docker compose exec kafka kafka-consumer-groups.sh \
 | Redis | 0.5 core | 256 MB |
 | Simulator | 0.5 core | 256 MB |
 | Parser | 1 core | 512 MB |
+| Feature Engine | 0.5 core | 512 MB |
+| Anomaly Detection | 1 core | 1 GB |
+| Alerting | 0.5 core | 256 MB |
+| Dashboard | 0.5 core | 256 MB |
 | Prometheus | 0.5 core | 512 MB |
 | Grafana | 0.5 core | 256 MB |
-| **Total** | **~4 cores** | **~3 GB** |
+| **Total (full)** | **~6 cores** | **~5 GB** |

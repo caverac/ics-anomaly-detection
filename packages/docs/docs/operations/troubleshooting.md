@@ -12,52 +12,118 @@ Common issues and solutions.
 
 **Checklist:**
 
-1. **Check traffic is being captured:**
+1. **Check simulator is running:**
    ```bash
-   docker compose logs capture | tail -20
-   # Should show packet counts
+   curl http://localhost:8083/status
+   # Should show {"running": true, ...}
    ```
 
 2. **Verify Kafka topics have data:**
    ```bash
+   # Check raw packets
    docker compose exec kafka kafka-console-consumer.sh \
      --bootstrap-server localhost:9092 \
-     --topic ics.features --max-messages 5
+     --topic ics.raw.packets --max-messages 3
+
+   # Check features
+   docker compose exec kafka kafka-console-consumer.sh \
+     --bootstrap-server localhost:9092 \
+     --topic ics.features --max-messages 3
+
+   # Check anomalies
+   docker compose exec kafka kafka-console-consumer.sh \
+     --bootstrap-server localhost:9092 \
+     --topic ics.anomalies --max-messages 3
    ```
 
-3. **Check inference service:**
+3. **Check service health:**
    ```bash
-   curl http://localhost:8082/health
+   curl http://localhost:8082/health  # Feature engine
+   curl http://localhost:8085/health  # Anomaly detection
+   curl http://localhost:8084/health  # Alerting
    ```
 
-4. **Verify threshold configuration:**
-   - Is `anomaly_score` threshold too high?
-   - Are suppression rules blocking alerts?
+4. **Check for errors in logs:**
+   ```bash
+   docker compose logs --tail 50 anomaly-detection
+   docker compose logs --tail 50 alerting
+   ```
+
+5. **Verify alert thresholds:**
+   - Anomaly scores may be below threshold
+   - Try triggering an attack to generate higher scores:
+     ```bash
+     curl -X POST http://localhost:8083/attack/start \
+       -H "Content-Type: application/json" \
+       -d '{"mode": "reconnaissance"}'
+     ```
+
+## Services Not Starting
+
+**Symptoms:** Containers exit or restart repeatedly.
+
+### Kafka Not Ready
+
+```bash
+# Check Kafka logs
+docker compose logs kafka
+
+# Common issues:
+# - "Cluster ID doesn't match" → delete volumes: docker compose down -v
+# - Port conflicts → check nothing else on 9092
+```
+
+**Solution:** Ensure Kafka is healthy before starting dependent services:
+
+```bash
+# Wait for Kafka
+docker compose up -d kafka
+sleep 10
+docker compose up -d
+```
+
+### Redis Connection Failed
+
+```bash
+# Check Redis
+docker compose logs redis
+docker compose exec redis redis-cli ping
+# Should return: PONG
+```
+
+### Port Conflicts
+
+```bash
+# Check if ports are in use
+lsof -i :8083  # Simulator
+lsof -i :8084  # Alerting
+lsof -i :9092  # Kafka
+```
 
 ## High False Positive Rate
 
 **Solutions:**
 
-1. **Increase threshold:**
-   ```yaml
-   thresholds:
-     global:
-       anomaly_score: 0.8  # Increase from 0.7
-   ```
-
-2. **Retrain models with more data:**
+1. **Check anomaly distribution:**
    ```bash
-   ./scripts/retrain.sh --days 30
+   curl http://localhost:8084/stats
+   # High dedup_suppressed indicates repeated alerts
    ```
 
-3. **Add suppression rules for known patterns:**
-   ```yaml
-   suppression:
-     rules:
-       - match:
-           source_ip: "192.168.1.100"  # HMI
-           type: "TIMING_ANOMALY"
-         action: "suppress"
+2. **Adjust traffic patterns:**
+   ```bash
+   # Reduce simulator rate
+   curl -X POST http://localhost:8083/config \
+     -H "Content-Type: application/json" \
+     -d '{"rate": 50}'
+   ```
+
+3. **Review feature values:**
+   ```bash
+   # Sample features
+   docker compose exec kafka kafka-console-consumer.sh \
+     --bootstrap-server localhost:9092 \
+     --topic ics.features --max-messages 5 | jq
    ```
 
 ## High Latency
@@ -65,97 +131,161 @@ Common issues and solutions.
 **Check bottlenecks:**
 
 ```bash
-# Kafka lag
+# Check Kafka consumer lag
 docker compose exec kafka kafka-consumer-groups.sh \
   --bootstrap-server localhost:9092 \
-  --describe --group inference-service
+  --describe --group anomaly-detection
 
-# Inference latency
-curl -s http://localhost:8082/metrics | grep inference_latency
+# Check service latency metrics
+curl -s http://localhost:8085/metrics | grep latency
 ```
 
 **Solutions:**
 
-- Scale inference service replicas
-- Enable GPU acceleration
-- Increase batch size
+- Scale feature engine workers (increase `WORKER_COUNT`)
+- Reduce simulator message rate
+- Check container resource limits
 
 ## Kafka Issues
 
-### Consumer Lag
+### Consumer Not Receiving Messages
+
+```bash
+# Check consumer groups
+docker compose exec kafka kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 \
+  --list
+
+# Check specific group
+docker compose exec kafka kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 \
+  --describe --group anomaly-detection
+```
+
+### Topics Not Created
+
+```bash
+# List topics
+docker compose exec kafka kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --list
+
+# Manually create if needed
+docker compose exec kafka kafka-topics.sh \
+  --bootstrap-server localhost:9092 \
+  --create --topic ics.features \
+  --partitions 6 --replication-factor 1
+```
+
+### Consumer Lag High
 
 ```bash
 # Check lag
-kafka-consumer-groups.sh --describe --group inference-service
+docker compose exec kafka kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 \
+  --describe --group feature-engine
 
-# Reset offsets (CAUTION: loses messages)
-kafka-consumer-groups.sh --reset-offsets --to-latest \
-  --topic ics.features --group inference-service --execute
+# Reset offsets (CAUTION: skips messages)
+docker compose exec kafka kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 \
+  --reset-offsets --to-latest \
+  --topic ics.raw.packets \
+  --group feature-engine --execute
 ```
 
-### Out of Disk
+### Disk Space Issues
 
 ```bash
-# Check disk usage
-df -h /var/lib/kafka
+# Check Kafka data size
+docker compose exec kafka du -sh /var/lib/kafka/data
 
-# Reduce retention
-kafka-configs.sh --alter --topic ics.raw.modbus \
+# Reduce retention (temporary)
+docker compose exec kafka kafka-configs.sh \
+  --bootstrap-server localhost:9092 \
+  --alter --topic ics.raw.packets \
   --add-config retention.ms=86400000  # 1 day
 ```
 
-## Database Issues
+## Redis Issues
 
-### TimescaleDB Slow Queries
+### Connection Refused
 
-```sql
--- Check chunk sizes
-SELECT * FROM timescaledb_information.chunks
-WHERE hypertable_name = 'features'
-ORDER BY range_start DESC LIMIT 10;
+```bash
+# Check Redis is running
+docker compose ps redis
 
--- Compress old chunks
-SELECT compress_chunk(c) FROM show_chunks('features', older_than => interval '7 days') c;
+# Test connection
+docker compose exec redis redis-cli ping
+
+# Check Redis logs
+docker compose logs redis
 ```
 
-### Connection Pool Exhausted
+### Memory Issues
 
-Increase pool size in config:
+```bash
+# Check Redis memory
+docker compose exec redis redis-cli info memory
 
-```yaml
-database:
-  pool_size: 20  # Increase from default 10
+# Clear data if needed (loses state)
+docker compose exec redis redis-cli FLUSHALL
 ```
 
 ## Model Issues
 
+### Low Detection Rate
+
+1. **Check feature values are reasonable:**
+   ```bash
+   docker compose exec kafka kafka-console-consumer.sh \
+     --bootstrap-server localhost:9092 \
+     --topic ics.features --max-messages 1 | jq
+   ```
+
+2. **Verify models are loaded:**
+   ```bash
+   docker compose logs anomaly-detection | grep -i model
+   ```
+
+3. **Check inference is running:**
+   ```bash
+   curl http://localhost:8085/health
+   ```
+
 ### Model Not Loading
 
 ```bash
-# Check MLflow
-curl http://localhost:5000/api/2.0/mlflow/registered-models/list
+# Check model files exist
+docker compose exec anomaly-detection ls -la /app/models/
 
-# Verify model stage
-curl http://localhost:5000/api/2.0/mlflow/registered-models/get-latest-versions \
-  -d '{"name": "isolation_forest", "stages": ["Production"]}'
+# Check for import errors
+docker compose logs anomaly-detection | grep -i error
 ```
 
-### Poor Detection
+## Complete Reset
 
-1. Check for data drift:
-   ```bash
-   ./scripts/check-drift.sh
-   ```
+If all else fails, reset everything:
 
-2. Review feature distributions:
-   ```sql
-   SELECT
-     percentile_cont(0.5) WITHIN GROUP (ORDER BY (features->>'msg_count_5m')::float) as median
-   FROM features
-   WHERE time > now() - interval '1 day';
-   ```
+```bash
+# Stop and remove everything
+docker compose down -v
 
-3. Trigger retraining:
-   ```bash
-   curl -X POST http://localhost:8082/models/retrain
-   ```
+# Remove any cached images (optional)
+docker compose build --no-cache
+
+# Start fresh
+docker compose up -d
+```
+
+## Collecting Debug Information
+
+When reporting issues:
+
+```bash
+# System info
+echo "=== Docker Version ===" && docker version
+echo "=== Docker Compose Version ===" && docker compose version
+echo "=== Container Status ===" && docker compose ps
+echo "=== Resource Usage ===" && docker stats --no-stream
+echo "=== Recent Logs ===" && docker compose logs --tail 50
+```

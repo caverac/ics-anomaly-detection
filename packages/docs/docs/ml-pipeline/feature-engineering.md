@@ -39,34 +39,28 @@ flowchart TB
 
 ## Window Strategy
 
-Features are computed over multiple time windows to capture patterns at different scales:
+Features are computed over fixed-size tumbling windows:
 
 ```mermaid
 gantt
-    title Feature Windows (time progression →)
+    title Feature Windows (60-second tumbling)
     dateFormat s
     axisFormat %S
 
-    section 1-minute
+    section Windows
     Window 1 :a1, 0, 60s
     Window 2 :a2, 60, 60s
     Window 3 :a3, 120, 60s
-
-    section 5-minute
-    Window A :b1, 0, 300s
-    Window B :b2, 300, 300s
-
-    section 15-minute
-    Window X :c1, 0, 900s
+    Window 4 :a4, 180, 60s
 ```
 
 **Window Configuration:**
 
-| Window | Duration | Emit Frequency | Use Case |
-|--------|----------|----------------|----------|
-| 1-minute | 60s | Every 60s | Rapid anomalies, bursts |
-| 5-minute | 300s | Every 60s | Medium-term patterns |
-| 15-minute | 900s | Every 60s | Baseline deviations |
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Window Size | 60 seconds | Fixed window duration |
+| Emit Frequency | On window close | Features extracted when window ends |
+| Key | `(src_ip, dst_ip, protocol)` | Separate windows per connection |
 
 **Why tumbling windows?**
 - Deterministic behavior (reproducible)
@@ -321,33 +315,35 @@ class FeatureNormalizer:
         return np.array(normalized, dtype=np.float32)
 ```
 
-## Feature Store
+## Feature Output
 
-Features are stored in TimescaleDB for training and analysis:
+Features are published to Kafka for real-time inference:
 
-```sql
-CREATE TABLE features (
-    time        TIMESTAMPTZ NOT NULL,
-    key         TEXT NOT NULL,
-    protocol    TEXT NOT NULL,
-    features    JSONB NOT NULL,
-    anomaly_score FLOAT,
-    PRIMARY KEY (time, key)
-);
-
-SELECT create_hypertable('features', 'time');
-
--- Index for training queries
-CREATE INDEX idx_features_protocol ON features (protocol, time DESC);
-
--- Continuous aggregate for dashboards
-CREATE MATERIALIZED VIEW features_hourly
-WITH (timescaledb.continuous) AS
-SELECT
-    time_bucket('1 hour', time) AS bucket,
-    protocol,
-    AVG((features->>'msg_count_5m')::float) AS avg_msg_count,
-    MAX((features->>'scan_score_15m')::float) AS max_scan_score
-FROM features
-GROUP BY bucket, protocol;
+```json
+{
+  "_window_key": {
+    "src_ip": "192.168.1.100",
+    "dst_ip": "192.168.1.10",
+    "protocol": "modbus",
+    "window_size": 60,
+    "window_start": 1704067200
+  },
+  "_extracted_at": "2024-01-15T10:30:00.123456Z",
+  "protocol": "modbus",
+  "window_size_seconds": 60,
+  "message_count": 150,
+  "bytes_total": 1800,
+  "bytes_mean": 12.0,
+  "bytes_std": 2.5,
+  "iat_mean": 0.4,
+  "iat_std": 0.1,
+  "fc_unique_count": 3,
+  "fc_read_ratio": 0.8,
+  "fc_entropy": 1.2,
+  "addr_unique_count": 25
+}
 ```
+
+**Topic:** `ics.features`
+
+Features flow directly from the feature engine to the anomaly detection service via Kafka. No persistent feature store is currently implemented.

@@ -30,6 +30,32 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Core Technology',
+      items: [
+        'core-technology/go',
+        'core-technology/rust',
+        'core-technology/python',
+        'core-technology/kafka',
+        'core-technology/redis',
+        'core-technology/prometheus',
+        'core-technology/react'
+      ]
+    },
+    {
+      type: 'category',
+      label: 'Code Structure',
+      items: [
+        'code-structure/capture',
+        'code-structure/simulator',
+        'code-structure/parser',
+        'code-structure/feature-engine',
+        'code-structure/anomaly-detection',
+        'code-structure/alerting',
+        'code-structure/dashboard'
+      ]
+    },
+    {
+      type: 'category',
       label: 'ML Pipeline',
       items: [
         'ml-pipeline/data-ingestion',
