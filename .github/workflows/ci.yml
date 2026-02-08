@@ -284,13 +284,62 @@ jobs:
         run: docker compose build
 
   # ===========================================================================
+  # E2E Tests
+  # ===========================================================================
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [build-docker]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build all images
+        run: docker compose build
+
+      - name: Run E2E tests
+        run: ./scripts/e2e-test.sh
+        timeout-minutes: 10
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          echo "=== Docker Compose Status ==="
+          docker compose ps -a
+          echo ""
+          echo "=== Kafka Logs ==="
+          docker compose logs kafka --tail=50 || true
+          echo ""
+          echo "=== Parser Logs ==="
+          docker compose logs parser --tail=50 || true
+          echo ""
+          echo "=== Feature Engine Logs ==="
+          docker compose logs feature-engine --tail=50 || true
+          echo ""
+          echo "=== Anomaly Detection Logs ==="
+          docker compose logs anomaly-detection --tail=50 || true
+          echo ""
+          echo "=== Alerting Logs ==="
+          docker compose logs alerting --tail=50 || true
+          echo ""
+          echo "=== Simulator Logs ==="
+          docker compose --profile simulator logs simulator --tail=50 || true
+
+      - name: Cleanup
+        if: always()
+        run: docker compose --profile simulator down -v --remove-orphans
+
+  # ===========================================================================
   # Summary
   # ===========================================================================
 
   ci-complete:
     name: CI Complete
     runs-on: ubuntu-latest
-    needs: [build-docker]
+    needs: [e2e-test]
     steps:
       - name: All checks passed
         run: echo "All CI checks passed!"

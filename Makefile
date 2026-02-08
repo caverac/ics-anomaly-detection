@@ -1,4 +1,4 @@
-.PHONY: help up down logs clean build test dev dev-full dev-alerting dev-dashboard
+.PHONY: help up down logs clean build test dev dev-full dev-alerting dev-dashboard e2e-test
 
 # =============================================================================
 # Help
@@ -31,6 +31,7 @@ help:
 	@echo "  ci-test         Test all languages via Docker"
 	@echo "  ci-build        Build all Docker images"
 	@echo "  ci              Run full CI pipeline"
+	@echo "  e2e-test        Run E2E pipeline tests"
 	@echo ""
 	@echo "=== Kafka Utilities ==="
 	@echo "  kafka-topics    List Kafka topics"
@@ -315,3 +316,8 @@ test-integration: dev-alerting
 	@echo "Stopping attack..."
 	@curl -sf -X POST http://localhost:8083/attack/stop > /dev/null
 	@echo "=== Integration Test Complete ==="
+
+# E2E test - full pipeline verification (used in CI)
+e2e-test:
+	@echo "=== Running E2E Tests ==="
+	./scripts/e2e-test.sh
