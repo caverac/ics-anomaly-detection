@@ -16,7 +16,7 @@ class TestKafkaSettings:
         assert settings.group_id == "feature-engine"
         assert settings.client_id == "feature-engine-client"
         assert settings.auto_offset_reset == "earliest"
-        assert "ics.raw.modbus" in settings.input_topics
+        assert "ics.parsed.modbus" in settings.input_topics
         assert settings.output_topic == "ics.features"
 
     def test_env_override(self, monkeypatch):
