@@ -22,6 +22,8 @@ from src.kafka.producer import AlertProducer
 from src.notifications.base import NotificationManager
 from src.notifications.console import ConsoleNotifier
 from src.notifications.slack import SlackNotifier
+from src.notifications.splunk import SplunkNotifier
+from src.notifications.syslog import SyslogNotifier
 from src.notifications.webhook import WebhookNotifier
 from src.schemas.alert import Alert, AlertStatus
 from src.schemas.incident import Incident, IncidentStatus
@@ -68,6 +70,14 @@ class AlertingService:
         # Add Slack if configured
         if self.settings.slack.enabled:
             self.notifications.add_channel(SlackNotifier(self.settings.slack))
+
+        # Add Splunk HEC if configured
+        if self.settings.splunk.enabled:
+            self.notifications.add_channel(SplunkNotifier(self.settings.splunk))
+
+        # Add Syslog if configured
+        if self.settings.syslog.enabled:
+            self.notifications.add_channel(SyslogNotifier(self.settings.syslog))
 
     def connect(self) -> None:
         """Connect to external services."""

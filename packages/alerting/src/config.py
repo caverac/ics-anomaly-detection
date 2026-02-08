@@ -80,6 +80,35 @@ class SlackSettings(BaseSettings):
     model_config = {"env_prefix": "SLACK_"}
 
 
+class SplunkSettings(BaseSettings):
+    """Splunk HEC notification settings."""
+
+    enabled: bool = Field(default=False)
+    hec_url: str = Field(default="")  # e.g., https://splunk:8088/services/collector/event
+    hec_token: str = Field(default="")
+    index: str = Field(default="main")
+    source: str = Field(default="ics-alerting")
+    sourcetype: str = Field(default="ics:alerts")
+    verify_ssl: bool = Field(default=True)
+    timeout_seconds: int = Field(default=10)
+
+    model_config = {"env_prefix": "SPLUNK_"}
+
+
+class SyslogSettings(BaseSettings):
+    """Syslog notification settings."""
+
+    enabled: bool = Field(default=False)
+    host: str = Field(default="")
+    port: int = Field(default=514)
+    protocol: str = Field(default="udp")  # udp or tcp
+    facility: str = Field(default="LOCAL0")  # LOCAL0-LOCAL7
+    hostname: str = Field(default="")  # Override hostname in syslog message
+    timeout_seconds: int = Field(default=5)
+
+    model_config = {"env_prefix": "SYSLOG_"}
+
+
 class ApiSettings(BaseSettings):
     """API server settings."""
 
@@ -99,6 +128,8 @@ class Settings(BaseSettings):
     escalation: EscalationSettings = Field(default_factory=EscalationSettings)
     webhook: WebhookSettings = Field(default_factory=WebhookSettings)
     slack: SlackSettings = Field(default_factory=SlackSettings)
+    splunk: SplunkSettings = Field(default_factory=SplunkSettings)
+    syslog: SyslogSettings = Field(default_factory=SyslogSettings)
     api: ApiSettings = Field(default_factory=ApiSettings)
 
     log_level: str = Field(default="INFO")

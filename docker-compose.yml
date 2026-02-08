@@ -211,6 +211,13 @@ services:
       - ESCALATION_P1_THRESHOLD=20
       - WEBHOOK_ENABLED=false
       - SLACK_ENABLED=false
+      - SPLUNK_ENABLED=false
+      - SPLUNK_HEC_URL=
+      - SPLUNK_HEC_TOKEN=
+      - SYSLOG_ENABLED=false
+      - SYSLOG_HOST=
+      - SYSLOG_PORT=514
+      - SYSLOG_PROTOCOL=udp
       - ALERTING_LOG_LEVEL=INFO
       - ALERTING_LOG_FORMAT=json
     ports:
