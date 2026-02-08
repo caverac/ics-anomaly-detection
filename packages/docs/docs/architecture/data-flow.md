@@ -91,12 +91,12 @@ sequenceDiagram
 
 **Performance Characteristics:**
 
-| Metric | Value |
-|--------|-------|
-| Max throughput | 10 Gbps line rate |
-| Latency (TAP to Parser) | < 1ms p99 |
-| Packet loss at max load | < 0.01% |
-| Buffer size | 512MB ring buffer |
+| Metric                  | Value             |
+| ----------------------- | ----------------- |
+| Max throughput          | 10 Gbps line rate |
+| Latency (TAP to Parser) | < 1ms p99         |
+| Packet loss at max load | < 0.01%           |
+| Buffer size             | 512MB ring buffer |
 
 ### Stage 2: Protocol Parsing Flow
 
@@ -340,25 +340,25 @@ flowchart LR
 
 **Retention Settings:**
 
-| Data | Storage | TTL |
-|------|---------|-----|
-| Raw packets | Kafka | 7 days |
-| Parsed messages | Kafka | 7 days |
-| Feature vectors | Kafka | 7 days |
-| Anomaly results | Kafka | 7 days |
-| Alerts | Redis | 7 days |
-| Incidents | Redis | 24 hours |
-| Deduplication keys | Redis | 60 seconds |
+| Data               | Storage | TTL        |
+| ------------------ | ------- | ---------- |
+| Raw packets        | Kafka   | 7 days     |
+| Parsed messages    | Kafka   | 7 days     |
+| Feature vectors    | Kafka   | 7 days     |
+| Anomaly results    | Kafka   | 7 days     |
+| Alerts             | Redis   | 7 days     |
+| Incidents          | Redis   | 24 hours   |
+| Deduplication keys | Redis   | 60 seconds |
 
 ## Throughput & Scaling
 
-| Stage | Single Instance | Horizontal Scaling |
-|-------|-----------------|-------------------|
-| Packet Capture | 100K pps | Multiple interfaces |
-| Protocol Parser | 50K msgs/s | Partition by source IP |
-| Feature Engine | 10K vectors/s | Partition by Kafka partition |
-| Inference Service | 10K inferences/s | Replicas + GPU optional |
-| Alert Manager | 1K alerts/s | Single instance sufficient |
+| Stage             | Single Instance  | Horizontal Scaling           |
+| ----------------- | ---------------- | ---------------------------- |
+| Packet Capture    | 100K pps         | Multiple interfaces          |
+| Protocol Parser   | 50K msgs/s       | Partition by source IP       |
+| Feature Engine    | 10K vectors/s    | Partition by Kafka partition |
+| Inference Service | 10K inferences/s | Replicas + GPU optional      |
+| Alert Manager     | 1K alerts/s      | Single instance sufficient   |
 
 **Kafka Partition Strategy:**
 

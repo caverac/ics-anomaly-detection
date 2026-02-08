@@ -12,7 +12,8 @@ export default [
       '**/dist/**',
       '**/build/**',
       '**/.docusaurus/**',
-      '**/coverage/**'
+      '**/coverage/**',
+      '**/.venv/**'
     ]
   },
   {

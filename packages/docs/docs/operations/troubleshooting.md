@@ -13,12 +13,14 @@ Common issues and solutions.
 **Checklist:**
 
 1. **Check simulator is running:**
+
    ```bash
    curl http://localhost:8083/status
    # Should show {"running": true, ...}
    ```
 
 2. **Verify Kafka topics have data:**
+
    ```bash
    # Check raw packets
    docker compose exec kafka kafka-console-consumer.sh \
@@ -37,6 +39,7 @@ Common issues and solutions.
    ```
 
 3. **Check service health:**
+
    ```bash
    curl http://localhost:8082/health  # Feature engine
    curl http://localhost:8085/health  # Anomaly detection
@@ -44,6 +47,7 @@ Common issues and solutions.
    ```
 
 4. **Check for errors in logs:**
+
    ```bash
    docker compose logs --tail 50 anomaly-detection
    docker compose logs --tail 50 alerting
@@ -105,12 +109,14 @@ lsof -i :9092  # Kafka
 **Solutions:**
 
 1. **Check anomaly distribution:**
+
    ```bash
    curl http://localhost:8084/stats
    # High dedup_suppressed indicates repeated alerts
    ```
 
 2. **Adjust traffic patterns:**
+
    ```bash
    # Reduce simulator rate
    curl -X POST http://localhost:8083/config \
@@ -236,6 +242,7 @@ docker compose exec redis redis-cli FLUSHALL
 ### Low Detection Rate
 
 1. **Check feature values are reasonable:**
+
    ```bash
    docker compose exec kafka kafka-console-consumer.sh \
      --bootstrap-server localhost:9092 \
@@ -243,6 +250,7 @@ docker compose exec redis redis-cli FLUSHALL
    ```
 
 2. **Verify models are loaded:**
+
    ```bash
    docker compose logs anomaly-detection | grep -i model
    ```

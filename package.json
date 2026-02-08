@@ -11,7 +11,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "typecheck": "yarn workspaces foreach -Apt run typecheck",
+    "typecheck": "yarn workspaces foreach -Apt --include '@ics/dashboard' --include '@ics-anomaly-detection/docs' run typecheck",
     "//2": "=== Testing ===",
     "test": "yarn workspaces foreach -Apt run test",
     "test:js": "yarn workspaces foreach -Apt --include '@ics/dashboard' --include '@ics-anomaly-detection/docs' run test",

@@ -57,9 +57,7 @@ export function Settings() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Overall Status</span>
-                <Badge
-                  variant={health?.status === 'healthy' ? 'default' : 'destructive'}
-                >
+                <Badge variant={health?.status === 'healthy' ? 'default' : 'destructive'}>
                   {health?.status || 'Unknown'}
                 </Badge>
               </div>
@@ -100,44 +98,32 @@ export function Settings() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Alerts Processed</span>
-                <span className="font-mono">
-                  {formatNumber(stats?.alerts_processed ?? 0)}
-                </span>
+                <span className="font-mono">{formatNumber(stats?.alerts_processed ?? 0)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Incidents Created</span>
-                <span className="font-mono">
-                  {formatNumber(stats?.incidents_created ?? 0)}
-                </span>
+                <span className="font-mono">{formatNumber(stats?.incidents_created ?? 0)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Incidents Updated</span>
-                <span className="font-mono">
-                  {formatNumber(stats?.incidents_updated ?? 0)}
-                </span>
+                <span className="font-mono">{formatNumber(stats?.incidents_updated ?? 0)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Notifications Sent</span>
-                <span className="font-mono">
-                  {formatNumber(stats?.notifications_sent ?? 0)}
-                </span>
+                <span className="font-mono">{formatNumber(stats?.notifications_sent ?? 0)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Dedup Suppressed</span>
-                <span className="font-mono">
-                  {formatNumber(stats?.dedup_suppressed ?? 0)}
-                </span>
+                <span className="font-mono">{formatNumber(stats?.dedup_suppressed ?? 0)}</span>
               </div>
 
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Escalations</span>
-                <span className="font-mono">
-                  {formatNumber(stats?.escalations ?? 0)}
-                </span>
+                <span className="font-mono">{formatNumber(stats?.escalations ?? 0)}</span>
               </div>
             </div>
           </CardContent>
@@ -189,8 +175,8 @@ export function Settings() {
 
               <div className="text-sm text-muted-foreground">
                 <p>
-                  This dashboard displays alerts and incidents detected by the ML-based
-                  anomaly detection pipeline.
+                  This dashboard displays alerts and incidents detected by the ML-based anomaly
+                  detection pipeline.
                 </p>
               </div>
 

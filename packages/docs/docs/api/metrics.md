@@ -8,12 +8,12 @@ All services expose metrics on `/metrics` endpoint in Prometheus format.
 
 ## Service Metric Endpoints
 
-| Service | Port | Endpoint |
-|---------|------|----------|
-| Simulator | 8083 | `/metrics` |
-| Feature Engine | 8082 | `/metrics` |
+| Service           | Port | Endpoint   |
+| ----------------- | ---- | ---------- |
+| Simulator         | 8083 | `/metrics` |
+| Feature Engine    | 8082 | `/metrics` |
 | Anomaly Detection | 8085 | `/metrics` |
-| Alerting | 8084 | `/metrics` |
+| Alerting          | 8084 | `/metrics` |
 
 ## Simulator Metrics
 
@@ -136,6 +136,7 @@ Pre-built dashboards are available in `/config/grafana/provisioning/dashboards/`
 ### Overview Dashboard
 
 Displays:
+
 - Message throughput (simulator → features → anomalies)
 - Alert generation rate
 - Service health status
@@ -144,6 +145,7 @@ Displays:
 ### Detection Dashboard
 
 Displays:
+
 - Anomaly score distribution over time
 - Alerts by type and severity
 - Top source/destination pairs

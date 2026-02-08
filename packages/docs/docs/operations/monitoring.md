@@ -32,12 +32,12 @@ flowchart TB
 
 Each service exposes health and metrics endpoints:
 
-| Service | Health | Metrics |
-|---------|--------|---------|
-| Simulator | http://localhost:8083/health | http://localhost:8083/metrics |
-| Feature Engine | http://localhost:8082/health | http://localhost:8082/metrics |
+| Service           | Health                       | Metrics                       |
+| ----------------- | ---------------------------- | ----------------------------- |
+| Simulator         | http://localhost:8083/health | http://localhost:8083/metrics |
+| Feature Engine    | http://localhost:8082/health | http://localhost:8082/metrics |
 | Anomaly Detection | http://localhost:8085/health | http://localhost:8085/metrics |
-| Alerting | http://localhost:8084/health | http://localhost:8084/metrics |
+| Alerting          | http://localhost:8084/health | http://localhost:8084/metrics |
 
 ### Health Check Examples
 
@@ -61,17 +61,20 @@ done
 The React dashboard (http://localhost:5173) provides real-time monitoring:
 
 ### Overview Tab
+
 - System health status
 - Pipeline throughput metrics
 - Recent alerts feed
 - Anomaly score trends
 
 ### Alerts Tab
+
 - Alert list with filtering (severity, status, type)
 - Alert detail view
 - Acknowledge/resolve actions
 
 ### Incidents Tab
+
 - Active incident tracking
 - Correlation visualization
 - Priority escalation status
@@ -108,13 +111,13 @@ docker compose exec kafka kafka-consumer-groups.sh \
 
 ### Expected Topics
 
-| Topic | Partitions | Retention |
-|-------|------------|-----------|
-| `ics.raw.packets` | 6 | 7 days |
-| `ics.parsed.modbus` | 6 | 7 days |
-| `ics.features` | 6 | 7 days |
-| `ics.anomalies` | 6 | 7 days |
-| `ics.alerts` | 6 | 7 days |
+| Topic               | Partitions | Retention |
+| ------------------- | ---------- | --------- |
+| `ics.raw.packets`   | 6          | 7 days    |
+| `ics.parsed.modbus` | 6          | 7 days    |
+| `ics.features`      | 6          | 7 days    |
+| `ics.anomalies`     | 6          | 7 days    |
+| `ics.alerts`        | 6          | 7 days    |
 
 ## Key Metrics
 
@@ -209,7 +212,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Service {{ $labels.instance }} is down"
+          summary: 'Service {{ $labels.instance }} is down'
 
       - alert: HighErrorRate
         expr: rate(simulator_errors_total[5m]) > 0.01
@@ -217,7 +220,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High error rate in simulator"
+          summary: 'High error rate in simulator'
 
       - alert: KafkaLagHigh
         expr: kafka_consumer_lag > 10000
@@ -225,7 +228,7 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Kafka consumer falling behind"
+          summary: 'Kafka consumer falling behind'
 ```
 
 ## Grafana Integration

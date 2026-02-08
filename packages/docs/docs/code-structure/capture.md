@@ -4,13 +4,13 @@ The capture package is a Go service that captures raw network packets from a net
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | Go |
-| Location | `packages/capture/` |
-| Input | Network interface (e.g., `eth0`) |
-| Output | Kafka topic `ics.raw.packets` |
-| Port | 8081 (metrics/health) |
+| Property | Value                            |
+| -------- | -------------------------------- |
+| Language | Go                               |
+| Location | `packages/capture/`              |
+| Input    | Network interface (e.g., `eth0`) |
+| Output   | Kafka topic `ics.raw.packets`    |
+| Port     | 8081 (metrics/health)            |
 
 ## What it does
 
@@ -73,15 +73,15 @@ The capture service produces messages to `ics.raw.packets` with this structure:
 
 The service can be configured via environment variables or `config.yaml`:
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `CAPTURE_INTERFACE` | Network interface to capture from | `eth0` |
-| `CAPTURE_BPF_FILTER` | BPF filter expression | `tcp port 502 or tcp port 20000 or tcp port 4840` |
-| `CAPTURE_PROMISCUOUS` | Enable promiscuous mode | `true` |
-| `CAPTURE_SNAP_LEN` | Maximum bytes to capture per packet | `65535` |
-| `KAFKA_BROKERS` | Kafka broker addresses | `localhost:9092` |
-| `KAFKA_TOPIC` | Output Kafka topic | `ics.raw.packets` |
-| `LOG_LEVEL` | Log level (debug, info, warn, error) | `info` |
+| Environment Variable  | Description                          | Default                                           |
+| --------------------- | ------------------------------------ | ------------------------------------------------- |
+| `CAPTURE_INTERFACE`   | Network interface to capture from    | `eth0`                                            |
+| `CAPTURE_BPF_FILTER`  | BPF filter expression                | `tcp port 502 or tcp port 20000 or tcp port 4840` |
+| `CAPTURE_PROMISCUOUS` | Enable promiscuous mode              | `true`                                            |
+| `CAPTURE_SNAP_LEN`    | Maximum bytes to capture per packet  | `65535`                                           |
+| `KAFKA_BROKERS`       | Kafka broker addresses               | `localhost:9092`                                  |
+| `KAFKA_TOPIC`         | Output Kafka topic                   | `ics.raw.packets`                                 |
+| `LOG_LEVEL`           | Log level (debug, info, warn, error) | `info`                                            |
 
 ## How to run
 
@@ -129,13 +129,13 @@ go tool cover -html=coverage.out
 
 The service exposes Prometheus metrics on port 8081:
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `capture_packets_total` | counter | Total packets captured |
-| `capture_packets_published_total` | counter | Packets published to Kafka |
-| `capture_packets_dropped_total` | counter | Packets dropped (buffer full) |
-| `capture_bytes_total` | counter | Total bytes captured |
-| `capture_errors_total` | counter | Capture errors |
+| Metric                            | Type    | Description                   |
+| --------------------------------- | ------- | ----------------------------- |
+| `capture_packets_total`           | counter | Total packets captured        |
+| `capture_packets_published_total` | counter | Packets published to Kafka    |
+| `capture_packets_dropped_total`   | counter | Packets dropped (buffer full) |
+| `capture_bytes_total`             | counter | Total bytes captured          |
+| `capture_errors_total`            | counter | Capture errors                |
 
 ## Health check
 

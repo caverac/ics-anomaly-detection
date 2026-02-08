@@ -42,10 +42,7 @@ export function Network() {
       const existing = sourceNodes.get(ip)
       if (existing) {
         existing.incidentCount++
-        if (
-          incident.priority < existing.maxPriority ||
-          !existing.maxPriority
-        ) {
+        if (incident.priority < existing.maxPriority || !existing.maxPriority) {
           existing.maxPriority = incident.priority
         }
       } else {
@@ -62,10 +59,7 @@ export function Network() {
       const existing = destNodes.get(ip)
       if (existing) {
         existing.incidentCount++
-        if (
-          incident.priority < existing.maxPriority ||
-          !existing.maxPriority
-        ) {
+        if (incident.priority < existing.maxPriority || !existing.maxPriority) {
           existing.maxPriority = incident.priority
         }
       } else {
@@ -126,15 +120,7 @@ export function Network() {
                       <div className="font-mono text-sm">{node.ip}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          node.maxPriority.toLowerCase() as
-                            | 'p1'
-                            | 'p2'
-                            | 'p3'
-                            | 'p4'
-                        }
-                      >
+                      <Badge variant={node.maxPriority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'}>
                         {node.maxPriority}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
@@ -171,15 +157,7 @@ export function Network() {
                       <div className="font-mono text-sm">{node.ip}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          node.maxPriority.toLowerCase() as
-                            | 'p1'
-                            | 'p2'
-                            | 'p3'
-                            | 'p4'
-                        }
-                      >
+                      <Badge variant={node.maxPriority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'}>
                         {node.maxPriority}
                       </Badge>
                       <span className="text-sm text-muted-foreground">

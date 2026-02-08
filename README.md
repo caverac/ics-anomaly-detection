@@ -71,9 +71,9 @@ open http://localhost:3090
 
 This project uses two tools with clear responsibilities:
 
-| Tool | Responsibility |
-|------|----------------|
-| **`make`** | Docker/infrastructure operations, starting services |
+| Tool       | Responsibility                                             |
+| ---------- | ---------------------------------------------------------- |
+| **`make`** | Docker/infrastructure operations, starting services        |
 | **`yarn`** | Code quality (lint, format, typecheck), building artifacts |
 
 ### Development Commands (make)
@@ -147,31 +147,31 @@ ics-anomaly-detection/
 
 ## Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Dashboard | 3090 | React monitoring UI |
-| Docs | 3000 | Docusaurus documentation |
-| Alerting API | 8084 | Alert/incident management |
-| Simulator API | 8083 | Traffic simulation control |
-| Anomaly Detection | 8085 | ML inference service |
-| Feature Engine | 8082 | Feature extraction metrics |
-| Kafka | 9094 | External broker access |
-| Kafka UI | 8080 | Topic browser (debug mode) |
-| Grafana | 3001 | Dashboards (monitoring mode) |
-| Prometheus | 9090 | Metrics (monitoring mode) |
-| Redis | 6379 | Incident state storage |
+| Service           | Port | Description                  |
+| ----------------- | ---- | ---------------------------- |
+| Dashboard         | 3090 | React monitoring UI          |
+| Docs              | 3000 | Docusaurus documentation     |
+| Alerting API      | 8084 | Alert/incident management    |
+| Simulator API     | 8083 | Traffic simulation control   |
+| Anomaly Detection | 8085 | ML inference service         |
+| Feature Engine    | 8082 | Feature extraction metrics   |
+| Kafka             | 9094 | External broker access       |
+| Kafka UI          | 8080 | Topic browser (debug mode)   |
+| Grafana           | 3001 | Dashboards (monitoring mode) |
+| Prometheus        | 9090 | Metrics (monitoring mode)    |
+| Redis             | 6379 | Incident state storage       |
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|------------|
-| Languages | Python, Go, Rust, TypeScript |
-| ML Framework | PyTorch, scikit-learn |
-| Stream Processing | Apache Kafka (KRaft mode) |
-| Storage | Redis |
-| Frontend | React 19, Vite 7, Tailwind CSS 4 |
-| Monitoring | Prometheus, Grafana |
-| Containerization | Docker |
+| Layer             | Technology                       |
+| ----------------- | -------------------------------- |
+| Languages         | Python, Go, Rust, TypeScript     |
+| ML Framework      | PyTorch, scikit-learn            |
+| Stream Processing | Apache Kafka (KRaft mode)        |
+| Storage           | Redis                            |
+| Frontend          | React 19, Vite 7, Tailwind CSS 4 |
+| Monitoring        | Prometheus, Grafana              |
+| Containerization  | Docker                           |
 
 ## ML Pipeline
 
@@ -182,6 +182,7 @@ The anomaly detection pipeline uses an ensemble of models:
 - **One-Class SVM** - Boundary-based classification
 
 Features are extracted from 60-second time windows including:
+
 - Inter-arrival time statistics (mean, std, min, max)
 - Function code distribution and entropy
 - Address range and access patterns
@@ -210,6 +211,7 @@ yarn ci && make ci
 ```
 
 The CI pipeline runs:
+
 1. **Lint** - ESLint, Prettier, ruff, clippy, golangci-lint
 2. **Typecheck** - TypeScript, mypy
 3. **Test** - All unit tests

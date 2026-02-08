@@ -4,14 +4,14 @@ The alerting service is a Python application that consumes anomalies, correlates
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | Python |
-| Location | `packages/alerting/` |
-| Input | Kafka topic `ics.anomalies` |
-| Output | Kafka topic `ics.alerts`, notifications |
-| API | FastAPI on port 8084 |
-| State | Redis |
+| Property | Value                                   |
+| -------- | --------------------------------------- |
+| Language | Python                                  |
+| Location | `packages/alerting/`                    |
+| Input    | Kafka topic `ics.anomalies`             |
+| Output   | Kafka topic `ics.alerts`, notifications |
+| API      | FastAPI on port 8084                    |
+| State    | Redis                                   |
 
 ## What it does
 
@@ -61,19 +61,25 @@ packages/alerting/
 ## Core components
 
 ### Correlation Engine
+
 Groups anomalies by `{src_ip}:{dst_ip}:{protocol}` within a time window (default: 5 minutes). Creates or updates incidents for each unique correlation key.
 
 ### Deduplication Tracker
+
 Prevents notification spam by suppressing duplicate alerts with the same key within a suppression window (default: 60 seconds).
 
 ### Escalation Manager
+
 Automatically escalates incident priority based on:
+
 - Anomaly count thresholds (5→P3, 10→P2, 20→P1)
 - Critical severity detections
 - Multi-target attacks (single source hitting multiple destinations)
 
 ### Notification Manager
+
 Dispatches alerts through enabled channels:
+
 - **Console**: Logs alerts for debugging
 - **Webhook**: Generic HTTP POST to any endpoint
 - **Slack**: Rich formatted messages with severity colors
@@ -104,7 +110,7 @@ Dispatches alerts through enabled channels:
   "related_anomaly_count": 5,
   "feature_contributions": {
     "fc_unique_count": 0.25,
-    "addr_range": 0.20
+    "addr_range": 0.2
   }
 }
 ```
@@ -130,41 +136,41 @@ Dispatches alerts through enabled channels:
 
 ## API endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check |
-| GET | `/metrics` | Prometheus metrics |
-| GET | `/alerts` | List alerts (filter: status, severity) |
-| GET | `/alerts/{id}` | Get specific alert |
-| POST | `/alerts/{id}/acknowledge` | Acknowledge alert |
-| GET | `/incidents` | List incidents |
-| GET | `/incidents/{id}` | Get specific incident |
-| POST | `/incidents/{id}/acknowledge` | Acknowledge incident |
+| Method | Path                          | Description                            |
+| ------ | ----------------------------- | -------------------------------------- |
+| GET    | `/health`                     | Health check                           |
+| GET    | `/metrics`                    | Prometheus metrics                     |
+| GET    | `/alerts`                     | List alerts (filter: status, severity) |
+| GET    | `/alerts/{id}`                | Get specific alert                     |
+| POST   | `/alerts/{id}/acknowledge`    | Acknowledge alert                      |
+| GET    | `/incidents`                  | List incidents                         |
+| GET    | `/incidents/{id}`             | Get specific incident                  |
+| POST   | `/incidents/{id}/acknowledge` | Acknowledge incident                   |
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `KAFKA_BOOTSTRAP_SERVERS` | Kafka brokers | `localhost:9092` |
-| `KAFKA_INPUT_TOPIC` | Input topic | `ics.anomalies` |
-| `KAFKA_OUTPUT_TOPIC` | Output topic | `ics.alerts` |
-| `REDIS_URL` | Redis connection | `redis://localhost:6379` |
-| `CORRELATION_WINDOW_SECONDS` | Incident window | `300` |
-| `DEDUP_SUPPRESSION_SECONDS` | Dedup window | `60` |
-| `ESCALATION_P3_THRESHOLD` | Anomalies for P3 | `5` |
-| `ESCALATION_P2_THRESHOLD` | Anomalies for P2 | `10` |
-| `ESCALATION_P1_THRESHOLD` | Anomalies for P1 | `20` |
-| `WEBHOOK_ENABLED` | Enable webhook | `false` |
-| `WEBHOOK_URL` | Webhook endpoint | |
-| `SLACK_ENABLED` | Enable Slack | `false` |
-| `SLACK_WEBHOOK_URL` | Slack webhook | |
-| `SPLUNK_ENABLED` | Enable Splunk | `false` |
-| `SPLUNK_HEC_URL` | HEC endpoint | |
-| `SPLUNK_HEC_TOKEN` | HEC token | |
-| `SYSLOG_ENABLED` | Enable Syslog | `false` |
-| `SYSLOG_HOST` | Syslog server | |
-| `SYSLOG_PORT` | Syslog port | `514` |
-| `API_PORT` | API server port | `8084` |
+| Environment Variable         | Description      | Default                  |
+| ---------------------------- | ---------------- | ------------------------ |
+| `KAFKA_BOOTSTRAP_SERVERS`    | Kafka brokers    | `localhost:9092`         |
+| `KAFKA_INPUT_TOPIC`          | Input topic      | `ics.anomalies`          |
+| `KAFKA_OUTPUT_TOPIC`         | Output topic     | `ics.alerts`             |
+| `REDIS_URL`                  | Redis connection | `redis://localhost:6379` |
+| `CORRELATION_WINDOW_SECONDS` | Incident window  | `300`                    |
+| `DEDUP_SUPPRESSION_SECONDS`  | Dedup window     | `60`                     |
+| `ESCALATION_P3_THRESHOLD`    | Anomalies for P3 | `5`                      |
+| `ESCALATION_P2_THRESHOLD`    | Anomalies for P2 | `10`                     |
+| `ESCALATION_P1_THRESHOLD`    | Anomalies for P1 | `20`                     |
+| `WEBHOOK_ENABLED`            | Enable webhook   | `false`                  |
+| `WEBHOOK_URL`                | Webhook endpoint |                          |
+| `SLACK_ENABLED`              | Enable Slack     | `false`                  |
+| `SLACK_WEBHOOK_URL`          | Slack webhook    |                          |
+| `SPLUNK_ENABLED`             | Enable Splunk    | `false`                  |
+| `SPLUNK_HEC_URL`             | HEC endpoint     |                          |
+| `SPLUNK_HEC_TOKEN`           | HEC token        |                          |
+| `SYSLOG_ENABLED`             | Enable Syslog    | `false`                  |
+| `SYSLOG_HOST`                | Syslog server    |                          |
+| `SYSLOG_PORT`                | Syslog port      | `514`                    |
+| `API_PORT`                   | API server port  | `8084`                   |
 
 ## How to run
 
@@ -202,12 +208,12 @@ pytest tests/ -v
 
 ## Key dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `confluent-kafka` | Kafka consumer/producer |
-| `redis` | State storage |
-| `fastapi` | REST API |
-| `uvicorn` | ASGI server |
-| `httpx` | HTTP client for webhooks |
-| `pydantic` | Data validation |
-| `structlog` | Structured logging |
+| Package           | Purpose                  |
+| ----------------- | ------------------------ |
+| `confluent-kafka` | Kafka consumer/producer  |
+| `redis`           | State storage            |
+| `fastapi`         | REST API                 |
+| `uvicorn`         | ASGI server              |
+| `httpx`           | HTTP client for webhooks |
+| `pydantic`        | Data validation          |
+| `structlog`       | Structured logging       |

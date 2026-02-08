@@ -58,10 +58,10 @@ curl -X POST http://localhost:8083/attack/start \
 
 ### Expected Detection
 
-| Feature | Normal | During Attack |
-|---------|--------|---------------|
-| `fc_unique_count` | 2-4 | 5+ (includes 0x2B) |
-| `fc_diagnostic_ratio` | < 0.1 | > 0.5 |
+| Feature               | Normal | During Attack      |
+| --------------------- | ------ | ------------------ |
+| `fc_unique_count`     | 2-4    | 5+ (includes 0x2B) |
+| `fc_diagnostic_ratio` | < 0.1  | > 0.5              |
 
 **Expected Alert:** `RECONNAISSANCE` severity `HIGH`
 
@@ -99,10 +99,10 @@ curl -X POST http://localhost:8083/attack/start \
 
 ### Expected Detection
 
-| Feature | Normal | During Attack |
-|---------|--------|---------------|
-| `fc_write_ratio` | < 0.2 | > 0.5 |
-| `fc_read_ratio` | > 0.8 | < 0.5 |
+| Feature          | Normal | During Attack |
+| ---------------- | ------ | ------------- |
+| `fc_write_ratio` | < 0.2  | > 0.5         |
+| `fc_read_ratio`  | > 0.8  | < 0.5         |
 
 **Expected Alert:** `COMMAND_INJECTION` severity `CRITICAL`
 
@@ -140,10 +140,10 @@ curl -X POST http://localhost:8083/attack/start \
 
 ### Expected Detection (when implemented)
 
-| Feature | Normal | During Attack |
-|---------|--------|---------------|
-| `message_count` | 100/min | 60000+/min |
-| `iat_mean` | 600ms | < 1ms |
+| Feature         | Normal  | During Attack |
+| --------------- | ------- | ------------- |
+| `message_count` | 100/min | 60000+/min    |
+| `iat_mean`      | 600ms   | < 1ms         |
 
 **Expected Alert:** `VOLUME_ANOMALY` severity `CRITICAL`
 
@@ -201,6 +201,7 @@ docker compose exec kafka kafka-console-consumer.sh \
 ### View in Dashboard
 
 Open http://localhost:5173 to see:
+
 - Real-time anomaly score changes
 - Alert generation
 - Feature deviations

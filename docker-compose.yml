@@ -7,8 +7,8 @@ services:
     image: apache/kafka:3.9.0
     container_name: ics-kafka
     ports:
-      - "9092:9092"
-      - "9094:9094"
+      - '9092:9092'
+      - '9094:9094'
     environment:
       # KRaft mode (no Zookeeper)
       KAFKA_NODE_ID: 1
@@ -25,7 +25,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       # Topic settings
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       KAFKA_NUM_PARTITIONS: 6
       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
       KAFKA_LOG_RETENTION_HOURS: 168
@@ -49,7 +49,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-    entrypoint: ["/bin/bash", "-c"]
+    entrypoint: ['/bin/bash', '-c']
     command:
       - |
         echo "Creating Kafka topics..."
@@ -69,7 +69,7 @@ services:
     image: redis:7-alpine
     container_name: ics-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -101,13 +101,13 @@ services:
       - LOG_LEVEL=info
       - LOG_FORMAT=json
     ports:
-      - "8081:8081"
+      - '8081:8081'
     cap_add:
       - NET_RAW
       - NET_ADMIN
-    network_mode: host  # Required for packet capture
+    network_mode: host # Required for packet capture
     profiles:
-      - capture  # Only start with --profile capture
+      - capture # Only start with --profile capture
 
   parser:
     build:
@@ -125,7 +125,7 @@ services:
       - METRICS_PORT=8082
       - RUST_LOG=info
     ports:
-      - "8082:8082"
+      - '8082:8082'
     networks:
       - ics-network
     restart: unless-stopped
@@ -221,7 +221,7 @@ services:
       - ALERTING_LOG_LEVEL=INFO
       - ALERTING_LOG_FORMAT=json
     ports:
-      - "8084:8084"
+      - '8084:8084'
     networks:
       - ics-network
     restart: unless-stopped
@@ -239,7 +239,7 @@ services:
       alerting:
         condition: service_started
     ports:
-      - "3090:80"
+      - '3090:80'
     networks:
       - ics-network
     restart: unless-stopped
@@ -262,7 +262,7 @@ services:
       - SIMULATOR_RATE=100
       - SIMULATOR_PROTOCOL=modbus
     ports:
-      - "8083:8083"
+      - '8083:8083'
     networks:
       - ics-network
     profiles:
@@ -276,7 +276,7 @@ services:
     image: prom/prometheus:v2.51.0
     container_name: ics-prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -294,7 +294,7 @@ services:
     image: grafana/grafana:10.4.0
     container_name: ics-grafana
     ports:
-      - "3001:3000"
+      - '3001:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -317,7 +317,7 @@ services:
     image: provectuslabs/kafka-ui:latest
     container_name: ics-kafka-ui
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - KAFKA_CLUSTERS_0_NAME=ics-cluster
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092

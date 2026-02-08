@@ -1,11 +1,4 @@
-import {
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  FileWarning,
-  TrendingUp
-} from 'lucide-react'
+import { Activity, AlertTriangle, CheckCircle, Clock, FileWarning, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Badge, Card, CardContent, CardHeader, CardTitle, Spinner } from '@/components/ui'
@@ -95,12 +88,8 @@ export function Dashboard() {
           />
           {health?.status === 'healthy' ? 'System Healthy' : 'System Degraded'}
         </div>
-        {health?.kafka_connected && (
-          <Badge variant="secondary">Kafka Connected</Badge>
-        )}
-        {health?.redis_connected && (
-          <Badge variant="secondary">Redis Connected</Badge>
-        )}
+        {health?.kafka_connected && <Badge variant="secondary">Kafka Connected</Badge>}
+        {health?.redis_connected && <Badge variant="secondary">Redis Connected</Badge>}
       </div>
 
       {/* Stats cards */}
@@ -113,9 +102,7 @@ export function Dashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(stats?.alerts_processed ?? 0)}
-            </div>
+            <div className="text-2xl font-bold">{formatNumber(stats?.alerts_processed ?? 0)}</div>
             <p className="text-xs text-muted-foreground">
               {formatNumber(stats?.dedup_suppressed ?? 0)} deduplicated
             </p>
@@ -124,9 +111,7 @@ export function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Open Alerts
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Open Alerts</CardTitle>
             <AlertTriangle className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
@@ -152,15 +137,11 @@ export function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Escalations
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Escalations</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatNumber(stats?.escalations ?? 0)}
-            </div>
+            <div className="text-2xl font-bold">{formatNumber(stats?.escalations ?? 0)}</div>
             <p className="text-xs text-muted-foreground">Priority increases</p>
           </CardContent>
         </Card>
@@ -236,7 +217,9 @@ export function Dashboard() {
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <Badge variant={incident.priority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'}>
+                        <Badge
+                          variant={incident.priority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'}
+                        >
                           {incident.priority}
                         </Badge>
                         <span className="text-sm font-medium">{incident.title}</span>

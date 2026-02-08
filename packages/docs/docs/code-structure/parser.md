@@ -4,13 +4,13 @@ The parser package is a Rust service that consumes raw packets from Kafka, parse
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | Rust |
-| Location | `packages/parser/` |
-| Input | Kafka topic `ics.raw.packets` |
-| Output | Kafka topics `ics.parsed.modbus`, `ics.parsed.dnp3`, `ics.parsed.opcua` |
-| Port | 8082 (metrics/health) |
+| Property | Value                                                                   |
+| -------- | ----------------------------------------------------------------------- |
+| Language | Rust                                                                    |
+| Location | `packages/parser/`                                                      |
+| Input    | Kafka topic `ics.raw.packets`                                           |
+| Output   | Kafka topics `ics.parsed.modbus`, `ics.parsed.dnp3`, `ics.parsed.opcua` |
+| Port     | 8082 (metrics/health)                                                   |
 
 ## What it does
 
@@ -47,6 +47,7 @@ packages/parser/
 The parser extracts detailed information from Modbus TCP messages:
 
 ### MBAP Header
+
 - Transaction ID
 - Protocol ID
 - Length
@@ -54,19 +55,20 @@ The parser extracts detailed information from Modbus TCP messages:
 
 ### Function codes supported
 
-| Code | Function | Parsed Fields |
-|------|----------|---------------|
-| 0x01 | Read Coils | start_address, quantity |
-| 0x02 | Read Discrete Inputs | start_address, quantity |
-| 0x03 | Read Holding Registers | start_address, quantity, values |
-| 0x04 | Read Input Registers | start_address, quantity, values |
-| 0x05 | Write Single Coil | start_address, value |
-| 0x06 | Write Single Register | start_address, value |
-| 0x0F | Write Multiple Coils | start_address, quantity, byte_count |
-| 0x10 | Write Multiple Registers | start_address, quantity, values |
-| 0x2B | Device Identification | raw_data |
+| Code | Function                 | Parsed Fields                       |
+| ---- | ------------------------ | ----------------------------------- |
+| 0x01 | Read Coils               | start_address, quantity             |
+| 0x02 | Read Discrete Inputs     | start_address, quantity             |
+| 0x03 | Read Holding Registers   | start_address, quantity, values     |
+| 0x04 | Read Input Registers     | start_address, quantity, values     |
+| 0x05 | Write Single Coil        | start_address, value                |
+| 0x06 | Write Single Register    | start_address, value                |
+| 0x0F | Write Multiple Coils     | start_address, quantity, byte_count |
+| 0x10 | Write Multiple Registers | start_address, quantity, values     |
+| 0x2B | Device Identification    | raw_data                            |
 
 ### Exception handling
+
 - Detects exception responses (function code with 0x80 flag)
 - Extracts exception codes
 
@@ -143,14 +145,14 @@ The parser extracts detailed information from Modbus TCP messages:
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `KAFKA_BROKERS` | Kafka broker addresses | `localhost:9092` |
-| `KAFKA_GROUP_ID` | Consumer group ID | `ics-parser` |
-| `KAFKA_INPUT_TOPIC` | Input topic | `ics.raw.packets` |
-| `KAFKA_CLIENT_ID` | Client identifier | `ics-parser` |
-| `METRICS_PORT` | Health/metrics port | `8082` |
-| `RUST_LOG` | Log level | `info` |
+| Environment Variable | Description            | Default           |
+| -------------------- | ---------------------- | ----------------- |
+| `KAFKA_BROKERS`      | Kafka broker addresses | `localhost:9092`  |
+| `KAFKA_GROUP_ID`     | Consumer group ID      | `ics-parser`      |
+| `KAFKA_INPUT_TOPIC`  | Input topic            | `ics.raw.packets` |
+| `KAFKA_CLIENT_ID`    | Client identifier      | `ics-parser`      |
+| `METRICS_PORT`       | Health/metrics port    | `8082`            |
+| `RUST_LOG`           | Log level              | `info`            |
 
 ## How to run
 
@@ -209,14 +211,14 @@ curl http://localhost:8082/health
 
 ## Key dependencies
 
-| Crate | Purpose |
-|-------|---------|
-| `rdkafka` | Kafka client (librdkafka wrapper) |
-| `nom` | Parser combinators for binary protocols |
-| `tokio` | Async runtime |
-| `axum` | HTTP server for metrics |
-| `serde` | Serialization |
-| `tracing` | Structured logging |
+| Crate     | Purpose                                 |
+| --------- | --------------------------------------- |
+| `rdkafka` | Kafka client (librdkafka wrapper)       |
+| `nom`     | Parser combinators for binary protocols |
+| `tokio`   | Async runtime                           |
+| `axum`    | HTTP server for metrics                 |
+| `serde`   | Serialization                           |
+| `tracing` | Structured logging                      |
 
 ## Testing
 

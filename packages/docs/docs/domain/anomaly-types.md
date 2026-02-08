@@ -44,6 +44,7 @@ flowchart TB
 **Description:** Scanning or enumeration activity targeting ICS devices.
 
 **Indicators:**
+
 - High number of unique destination IPs from single source
 - Sequential address scanning
 - Device ID requests (Modbus FC 43)
@@ -82,6 +83,7 @@ sequenceDiagram
 **Description:** Deviations from expected communication timing patterns.
 
 **Indicators:**
+
 - Inter-arrival time deviation
 - Missing expected polls
 - Burst traffic patterns
@@ -103,6 +105,7 @@ sequenceDiagram
 **Description:** Abnormal traffic volume compared to baseline.
 
 **Indicators:**
+
 - Significantly higher message count than normal
 - Unusually large payload sizes
 - Traffic spikes or drops
@@ -121,6 +124,7 @@ sequenceDiagram
 **Description:** Traffic that violates ICS protocol specifications.
 
 **Indicators:**
+
 - Invalid function codes
 - Malformed packet structure
 - Unexpected response codes
@@ -156,6 +160,7 @@ sequenceDiagram
 **Description:** Access to restricted or unusual register addresses.
 
 **Indicators:**
+
 - Access to addresses outside normal range
 - New address patterns not seen in baseline
 - Access to configuration registers
@@ -176,6 +181,7 @@ sequenceDiagram
 **Description:** Unusual data extraction patterns indicating information theft.
 
 **Indicators:**
+
 - Large number of read operations
 - Sequential register reads
 - High data volume extraction
@@ -197,6 +203,7 @@ sequenceDiagram
 **Description:** Unauthorized write operations or malicious commands.
 
 **Indicators:**
+
 - Unexpected write commands
 - Write operations from new sources
 - Dangerous function codes
@@ -230,11 +237,13 @@ sequenceDiagram
 **Description:** Anomalous behavior that doesn't match known patterns.
 
 **When Used:**
+
 - High anomaly score from ML models
 - No rule-based classification matches
 - Potentially novel attack technique
 
 **Action Required:**
+
 - Manual investigation
 - Possible model retraining opportunity
 
@@ -242,16 +251,16 @@ sequenceDiagram
 
 ## Severity Mapping
 
-| Type | Default Severity | Rationale |
-|------|-----------------|-----------|
-| COMMAND_INJECTION | Critical | Direct process impact |
-| PROTOCOL_VIOLATION | Critical | Indicates active attack |
-| UNAUTHORIZED_ACCESS | High | Potential reconnaissance/attack |
-| DATA_EXFILTRATION | High | Information theft |
-| RECONNAISSANCE | High | Precursor to attack |
-| VOLUME_ANOMALY | Medium | May indicate issues |
-| TIMING_ANOMALY | Medium | May indicate collection |
-| UNKNOWN | Medium | Requires investigation |
+| Type                | Default Severity | Rationale                       |
+| ------------------- | ---------------- | ------------------------------- |
+| COMMAND_INJECTION   | Critical         | Direct process impact           |
+| PROTOCOL_VIOLATION  | Critical         | Indicates active attack         |
+| UNAUTHORIZED_ACCESS | High             | Potential reconnaissance/attack |
+| DATA_EXFILTRATION   | High             | Information theft               |
+| RECONNAISSANCE      | High             | Precursor to attack             |
+| VOLUME_ANOMALY      | Medium           | May indicate issues             |
+| TIMING_ANOMALY      | Medium           | May indicate collection         |
+| UNKNOWN             | Medium           | Requires investigation          |
 
 ## Classification Decision Tree
 

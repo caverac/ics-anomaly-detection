@@ -243,11 +243,11 @@ flowchart LR
 
 **Configuration:**
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| `batch_size` | 100 | Balance latency vs throughput |
-| `max_wait_ms` | 100 | Max wait for full batch |
-| `prefetch` | 2 batches | Pipeline consumer/inference |
+| Parameter     | Value     | Rationale                     |
+| ------------- | --------- | ----------------------------- |
+| `batch_size`  | 100       | Balance latency vs throughput |
+| `max_wait_ms` | 100       | Max wait for full batch       |
+| `prefetch`    | 2 batches | Pipeline consumer/inference   |
 
 ### Model Caching
 
@@ -317,12 +317,12 @@ gantt
 
 **Optimization Results:**
 
-| Stage | Before | After | Improvement |
-|-------|--------|-------|-------------|
-| Normalization | 5ms | 2ms | Vectorized numpy |
-| IF inference | 8ms | 4ms | Batch processing |
-| LSTM inference | 30ms | 14ms | ONNX + GPU |
-| Total p99 | 65ms | 30ms | 54% reduction |
+| Stage          | Before | After | Improvement      |
+| -------------- | ------ | ----- | ---------------- |
+| Normalization  | 5ms    | 2ms   | Vectorized numpy |
+| IF inference   | 8ms    | 4ms   | Batch processing |
+| LSTM inference | 30ms   | 14ms  | ONNX + GPU       |
+| Total p99      | 65ms   | 30ms  | 54% reduction    |
 
 ## Hot Model Reload
 

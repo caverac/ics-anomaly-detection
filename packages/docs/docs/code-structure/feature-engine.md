@@ -4,12 +4,12 @@ The feature engine is a Python service that aggregates parsed ICS messages into 
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | Python |
-| Location | `packages/feature-engine/` |
-| Input | Kafka topics `ics.parsed.modbus`, `ics.parsed.dnp3`, `ics.parsed.opcua` |
-| Output | Kafka topic `ics.features` |
+| Property | Value                                                                   |
+| -------- | ----------------------------------------------------------------------- |
+| Language | Python                                                                  |
+| Location | `packages/feature-engine/`                                              |
+| Input    | Kafka topics `ics.parsed.modbus`, `ics.parsed.dnp3`, `ics.parsed.opcua` |
+| Output   | Kafka topic `ics.features`                                              |
 
 ## What it does
 
@@ -69,46 +69,46 @@ When a window closes (current time > window_start + window_size), features are e
 
 ### Base features (all protocols)
 
-| Feature | Description |
-|---------|-------------|
-| `message_count` | Number of messages in window |
-| `bytes_total` | Total payload bytes |
-| `bytes_mean` | Mean payload size |
-| `bytes_std` | Std dev of payload size |
-| `bytes_min` | Minimum payload size |
-| `bytes_max` | Maximum payload size |
-| `iat_mean` | Mean inter-arrival time (seconds) |
-| `iat_std` | Std dev of inter-arrival time |
-| `iat_min` | Minimum inter-arrival time |
-| `iat_max` | Maximum inter-arrival time |
-| `iat_median` | Median inter-arrival time |
+| Feature         | Description                       |
+| --------------- | --------------------------------- |
+| `message_count` | Number of messages in window      |
+| `bytes_total`   | Total payload bytes               |
+| `bytes_mean`    | Mean payload size                 |
+| `bytes_std`     | Std dev of payload size           |
+| `bytes_min`     | Minimum payload size              |
+| `bytes_max`     | Maximum payload size              |
+| `iat_mean`      | Mean inter-arrival time (seconds) |
+| `iat_std`       | Std dev of inter-arrival time     |
+| `iat_min`       | Minimum inter-arrival time        |
+| `iat_max`       | Maximum inter-arrival time        |
+| `iat_median`    | Median inter-arrival time         |
 
 ### Modbus-specific features
 
-| Feature | Description |
-|---------|-------------|
-| `fc_unique_count` | Unique function codes |
-| `fc_read_ratio` | Ratio of read operations |
-| `fc_write_ratio` | Ratio of write operations |
-| `fc_diagnostic_ratio` | Ratio of diagnostic operations |
-| `fc_entropy` | Entropy of function code distribution |
-| `fc_most_common` | Most common function code |
-| `fc_most_common_ratio` | Ratio of most common function code |
-| `unit_id_unique_count` | Unique unit IDs addressed |
-| `unit_id_entropy` | Entropy of unit ID distribution |
-| `addr_unique_count` | Unique register addresses |
-| `addr_mean` | Mean address value |
-| `addr_std` | Std dev of addresses |
-| `addr_min` | Minimum address |
-| `addr_max` | Maximum address |
-| `addr_range` | Address range (max - min) |
-| `qty_mean` | Mean quantity per request |
-| `qty_max` | Maximum quantity |
-| `exception_count` | Number of exceptions |
-| `exception_ratio` | Ratio of exception responses |
-| `request_count` | Number of requests |
-| `response_count` | Number of responses |
-| `request_ratio` | Ratio of requests to total |
+| Feature                | Description                           |
+| ---------------------- | ------------------------------------- |
+| `fc_unique_count`      | Unique function codes                 |
+| `fc_read_ratio`        | Ratio of read operations              |
+| `fc_write_ratio`       | Ratio of write operations             |
+| `fc_diagnostic_ratio`  | Ratio of diagnostic operations        |
+| `fc_entropy`           | Entropy of function code distribution |
+| `fc_most_common`       | Most common function code             |
+| `fc_most_common_ratio` | Ratio of most common function code    |
+| `unit_id_unique_count` | Unique unit IDs addressed             |
+| `unit_id_entropy`      | Entropy of unit ID distribution       |
+| `addr_unique_count`    | Unique register addresses             |
+| `addr_mean`            | Mean address value                    |
+| `addr_std`             | Std dev of addresses                  |
+| `addr_min`             | Minimum address                       |
+| `addr_max`             | Maximum address                       |
+| `addr_range`           | Address range (max - min)             |
+| `qty_mean`             | Mean quantity per request             |
+| `qty_max`              | Maximum quantity                      |
+| `exception_count`      | Number of exceptions                  |
+| `exception_ratio`      | Ratio of exception responses          |
+| `request_count`        | Number of requests                    |
+| `response_count`       | Number of responses                   |
+| `request_ratio`        | Ratio of requests to total            |
 
 ## Output schema
 
@@ -141,14 +141,14 @@ When a window closes (current time > window_start + window_size), features are e
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `KAFKA_BOOTSTRAP_SERVERS` | Kafka broker addresses | `localhost:9092` |
-| `KAFKA_GROUP_ID` | Consumer group | `ics-feature-engine` |
-| `KAFKA_OUTPUT_TOPIC` | Output topic | `ics.features` |
-| `WINDOWS_WINDOW_SIZES` | Window sizes (seconds) | `[60]` |
-| `FEATURE_ENGINE_LOG_LEVEL` | Log level | `INFO` |
-| `FEATURE_ENGINE_LOG_FORMAT` | Log format (json/console) | `json` |
+| Environment Variable        | Description               | Default              |
+| --------------------------- | ------------------------- | -------------------- |
+| `KAFKA_BOOTSTRAP_SERVERS`   | Kafka broker addresses    | `localhost:9092`     |
+| `KAFKA_GROUP_ID`            | Consumer group            | `ics-feature-engine` |
+| `KAFKA_OUTPUT_TOPIC`        | Output topic              | `ics.features`       |
+| `WINDOWS_WINDOW_SIZES`      | Window sizes (seconds)    | `[60]`               |
+| `FEATURE_ENGINE_LOG_LEVEL`  | Log level                 | `INFO`               |
+| `FEATURE_ENGINE_LOG_FORMAT` | Log format (json/console) | `json`               |
 
 ## How to run
 
@@ -183,10 +183,10 @@ pytest tests/ -v
 
 ## Key dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `confluent-kafka` | Kafka consumer/producer |
-| `pydantic` | Data validation, settings |
+| Package             | Purpose                   |
+| ------------------- | ------------------------- |
+| `confluent-kafka`   | Kafka consumer/producer   |
+| `pydantic`          | Data validation, settings |
 | `pydantic-settings` | Environment configuration |
-| `numpy` | Statistical computations |
-| `structlog` | Structured logging |
+| `numpy`             | Statistical computations  |
+| `structlog`         | Structured logging        |

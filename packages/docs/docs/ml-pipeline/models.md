@@ -88,12 +88,12 @@ model = IsolationForest(
 
 ### Strengths & Weaknesses
 
-| Strengths | Weaknesses |
-|-----------|------------|
-| Fast training & inference | No temporal context |
-| Works with high dimensions | Sensitive to contamination param |
-| No assumptions about distribution | Can miss subtle anomalies |
-| Interpretable (path length) | Point-based only |
+| Strengths                         | Weaknesses                       |
+| --------------------------------- | -------------------------------- |
+| Fast training & inference         | No temporal context              |
+| Works with high dimensions        | Sensitive to contamination param |
+| No assumptions about distribution | Can miss subtle anomalies        |
+| Interpretable (path length)       | Point-based only                 |
 
 ---
 
@@ -169,7 +169,7 @@ class LSTMAutoencoder(nn.Module):
 
 ```yaml
 lstm_autoencoder:
-  sequence_length: 10      # 10 feature vectors (10 minutes)
+  sequence_length: 10 # 10 feature vectors (10 minutes)
   batch_size: 64
   epochs: 100
   learning_rate: 0.001
@@ -183,11 +183,11 @@ lstm_autoencoder:
 
 ### Strengths & Weaknesses
 
-| Strengths | Weaknesses |
-|-----------|------------|
-| Captures temporal patterns | Slower inference |
-| Learns complex sequences | Requires sequence data |
-| Good for subtle anomalies | Training complexity |
+| Strengths                    | Weaknesses               |
+| ---------------------------- | ------------------------ |
+| Captures temporal patterns   | Slower inference         |
+| Learns complex sequences     | Requires sequence data   |
+| Good for subtle anomalies    | Training complexity      |
 | Reconstruction interpretable | Hyperparameter sensitive |
 
 ---
@@ -229,12 +229,12 @@ model = OneClassSVM(
 
 ### Strengths & Weaknesses
 
-| Strengths | Weaknesses |
-|-----------|------------|
-| Clear decision boundary | Slow on large datasets |
-| Works with non-linear data | Sensitive to kernel params |
-| Robust to outliers in training | Memory intensive |
-| Good for dense clusters | Binary output (in/out) |
+| Strengths                      | Weaknesses                 |
+| ------------------------------ | -------------------------- |
+| Clear decision boundary        | Slow on large datasets     |
+| Works with non-linear data     | Sensitive to kernel params |
+| Robust to outliers in training | Memory intensive           |
+| Good for dense clusters        | Binary output (in/out)     |
 
 ---
 
@@ -305,23 +305,23 @@ class EnsembleAggregator:
 
 Each model's raw output is normalized to [0, 1]:
 
-| Model | Raw Output | Normalization |
-|-------|------------|---------------|
-| Isolation Forest | Anomaly score (-1 to 1) | `(score + 1) / 2` |
-| LSTM Autoencoder | MSE (0 to ∞) | `1 - exp(-mse / threshold)` |
-| One-Class SVM | Distance (-∞ to ∞) | `sigmoid(-distance)` |
+| Model            | Raw Output              | Normalization               |
+| ---------------- | ----------------------- | --------------------------- |
+| Isolation Forest | Anomaly score (-1 to 1) | `(score + 1) / 2`           |
+| LSTM Autoencoder | MSE (0 to ∞)            | `1 - exp(-mse / threshold)` |
+| One-Class SVM    | Distance (-∞ to ∞)      | `sigmoid(-distance)`        |
 
 ---
 
 ## Model Selection by Use Case
 
-| Use Case | Primary Model | Why |
-|----------|--------------|-----|
-| Scanning detection | Isolation Forest | Point anomalies, fast |
-| Command sequence attacks | LSTM Autoencoder | Temporal patterns |
-| New device detection | One-Class SVM | Boundary violation |
-| High-throughput | Isolation Forest | Fastest inference |
-| Resource-constrained | Isolation Forest | Lowest memory |
+| Use Case                 | Primary Model    | Why                   |
+| ------------------------ | ---------------- | --------------------- |
+| Scanning detection       | Isolation Forest | Point anomalies, fast |
+| Command sequence attacks | LSTM Autoencoder | Temporal patterns     |
+| New device detection     | One-Class SVM    | Boundary violation    |
+| High-throughput          | Isolation Forest | Fastest inference     |
+| Resource-constrained     | Isolation Forest | Lowest memory         |
 
 ## ONNX Export
 
@@ -346,6 +346,7 @@ torch.onnx.export(
 ```
 
 Benefits:
+
 - 2-3x faster inference
 - Language-agnostic deployment
 - Hardware acceleration (TensorRT, OpenVINO)

@@ -8,20 +8,20 @@ This guide covers setting up the development environment.
 
 ## Prerequisites
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Docker | 24+ | Container runtime |
-| Docker Compose | 2.20+ | Multi-container orchestration |
-| Node.js | 22+ | Monorepo management, dashboard |
-| Yarn | 4+ | Package manager |
+| Tool           | Version | Purpose                        |
+| -------------- | ------- | ------------------------------ |
+| Docker         | 24+     | Container runtime              |
+| Docker Compose | 2.20+   | Multi-container orchestration  |
+| Node.js        | 22+     | Monorepo management, dashboard |
+| Yarn           | 4+      | Package manager                |
 
 ### Optional (for local development)
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Python | 3.12+ | ML services |
-| Go | 1.23+ | Packet capture service |
-| Rust | 1.83+ | Protocol parser |
+| Tool   | Version | Purpose                |
+| ------ | ------- | ---------------------- |
+| Python | 3.12+   | ML services            |
+| Go     | 1.23+   | Packet capture service |
+| Rust   | 1.83+   | Protocol parser        |
 
 ## Quick Start with Docker
 
@@ -46,9 +46,9 @@ open http://localhost:3090
 
 This project uses two tools with clear responsibilities:
 
-| Tool | Responsibility |
-|------|----------------|
-| **`make`** | Docker/infrastructure operations, starting services |
+| Tool       | Responsibility                                             |
+| ---------- | ---------------------------------------------------------- |
+| **`make`** | Docker/infrastructure operations, starting services        |
 | **`yarn`** | Code quality (lint, format, typecheck), building artifacts |
 
 ### When to use `make`
@@ -76,35 +76,35 @@ yarn ci            # Full JS/TS CI pipeline
 
 ### Starting Services
 
-| Command | Description |
-|---------|-------------|
-| `make dev` | Start Kafka + Simulator + Parser + Feature Engine |
-| `make dev-full` | Add Anomaly Detection |
-| `make dev-alerting` | Add Alerting Service |
-| `make dev-dashboard` | Add React Dashboard (full pipeline) |
-| `make debug` | Add Kafka UI at localhost:8080 |
-| `make monitoring` | Add Prometheus + Grafana |
-| `make status` | Show status of all services |
-| `make down` | Stop all services |
-| `make clean` | Remove all containers and volumes |
+| Command              | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `make dev`           | Start Kafka + Simulator + Parser + Feature Engine |
+| `make dev-full`      | Add Anomaly Detection                             |
+| `make dev-alerting`  | Add Alerting Service                              |
+| `make dev-dashboard` | Add React Dashboard (full pipeline)               |
+| `make debug`         | Add Kafka UI at localhost:8080                    |
+| `make monitoring`    | Add Prometheus + Grafana                          |
+| `make status`        | Show status of all services                       |
+| `make down`          | Stop all services                                 |
+| `make clean`         | Remove all containers and volumes                 |
 
 ### Code Quality
 
-| Command | Description |
-|---------|-------------|
-| `yarn lint` | Lint JS/TS with ESLint |
-| `yarn lint:fix` | Fix linting issues |
-| `yarn format` | Check Prettier formatting |
-| `yarn format:fix` | Fix formatting |
-| `yarn typecheck` | Run TypeScript checks |
-| `yarn test` | Run all tests |
-| `yarn build` | Build docs + dashboard |
+| Command           | Description               |
+| ----------------- | ------------------------- |
+| `yarn lint`       | Lint JS/TS with ESLint    |
+| `yarn lint:fix`   | Fix linting issues        |
+| `yarn format`     | Check Prettier formatting |
+| `yarn format:fix` | Fix formatting            |
+| `yarn typecheck`  | Run TypeScript checks     |
+| `yarn test`       | Run all tests             |
+| `yarn build`      | Build docs + dashboard    |
 
 ### Development Servers
 
-| Command | Description |
-|---------|-------------|
-| `yarn dev:docs` | Start docs dev server (localhost:3000) |
+| Command              | Description                                 |
+| -------------------- | ------------------------------------------- |
+| `yarn dev:docs`      | Start docs dev server (localhost:3000)      |
 | `yarn dev:dashboard` | Start dashboard dev server (localhost:5173) |
 
 ## Local Development Setup
@@ -202,6 +202,7 @@ make status
 ```
 
 Expected output:
+
 ```
 === Container Status ===
 NAME                STATUS                  PORTS
@@ -255,6 +256,7 @@ yarn ci && make ci
 ```
 
 The CI pipeline:
+
 1. **Lint** - ESLint, Prettier, ruff, clippy, golangci-lint
 2. **Typecheck** - TypeScript, mypy
 3. **Test** - All unit tests

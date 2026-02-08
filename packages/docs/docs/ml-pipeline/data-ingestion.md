@@ -109,18 +109,18 @@ flowchart TB
 
 **MBAP Header Structure:**
 
-| Field | Bytes | Description |
-|-------|-------|-------------|
-| Transaction ID | 2 | Request/response matching |
-| Protocol ID | 2 | Always 0x0000 for Modbus |
-| Length | 2 | Remaining bytes |
-| Unit ID | 1 | Slave address |
+| Field          | Bytes | Description               |
+| -------------- | ----- | ------------------------- |
+| Transaction ID | 2     | Request/response matching |
+| Protocol ID    | 2     | Always 0x0000 for Modbus  |
+| Length         | 2     | Remaining bytes           |
+| Unit ID        | 1     | Slave address             |
 
 **Output Schema:**
 
 ```typescript
 interface ModbusMessage {
-  timestamp: string          // ISO 8601
+  timestamp: string // ISO 8601
   src_ip: string
   src_port: number
   dst_ip: string
@@ -136,7 +136,7 @@ interface ModbusMessage {
   start_address?: number
   quantity?: number
   values?: number[]
-  raw_payload: string        // Hex-encoded
+  raw_payload: string // Hex-encoded
 }
 ```
 
@@ -169,7 +169,7 @@ interface DNP3Message {
   timestamp: string
   src_ip: string
   dst_ip: string
-  source_address: number     // DNP3 address
+  source_address: number // DNP3 address
   destination_address: number
   function_code: number
   is_request: boolean
@@ -208,13 +208,13 @@ flowchart TB
 
 **Validation Checks:**
 
-| Check | Rule | Action on Fail |
-|-------|------|----------------|
-| Required fields | timestamp, src_ip, protocol | Send to DLQ |
-| IP format | Valid IPv4/IPv6 | Send to DLQ |
-| Port range | 0-65535 | Log warning, keep |
-| Function code | Valid for protocol | Log warning, keep |
-| Timestamp | Within 5 min of now | Log warning, adjust |
+| Check           | Rule                        | Action on Fail      |
+| --------------- | --------------------------- | ------------------- |
+| Required fields | timestamp, src_ip, protocol | Send to DLQ         |
+| IP format       | Valid IPv4/IPv6             | Send to DLQ         |
+| Port range      | 0-65535                     | Log warning, keep   |
+| Function code   | Valid for protocol          | Log warning, keep   |
+| Timestamp       | Within 5 min of now         | Log warning, adjust |
 
 ### Enrichment
 
@@ -247,7 +247,7 @@ topics:
   ics.raw.packets:
     partitions: 6
     replication_factor: 1
-    retention_ms: 604800000  # 7 days
+    retention_ms: 604800000 # 7 days
     key: src_ip + dst_ip
 
   ics.parsed.modbus:
@@ -295,11 +295,11 @@ topics:
 
 ### Throughput Targets
 
-| Stage | Target | Bottleneck |
-|-------|--------|------------|
-| Packet capture | 100K pps | Ring buffer size |
-| Protocol parsing | 50K msg/s | CPU (parsing) |
-| Kafka produce | 100K msg/s | Network/Kafka |
+| Stage            | Target     | Bottleneck       |
+| ---------------- | ---------- | ---------------- |
+| Packet capture   | 100K pps   | Ring buffer size |
+| Protocol parsing | 50K msg/s  | CPU (parsing)    |
+| Kafka produce    | 100K msg/s | Network/Kafka    |
 
 ### Backpressure Handling
 

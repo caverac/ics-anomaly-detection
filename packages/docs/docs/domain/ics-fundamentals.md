@@ -67,14 +67,14 @@ flowchart TB
 
 ### Purdue Model Levels
 
-| Level | Name | Components | Function |
-|-------|------|------------|----------|
-| 0 | Process | Sensors, actuators | Physical world interaction |
-| 1 | Basic Control | PLCs, RTUs | Direct process control |
-| 2 | Area Control | HMIs, DCS | Operator interface, supervision |
-| 3 | Site Operations | SCADA, EWS | Site-wide monitoring |
-| 4 | Site Business | Historian, MES | Data analytics, scheduling |
-| 5 | Enterprise | ERP, email | Business systems |
+| Level | Name            | Components         | Function                        |
+| ----- | --------------- | ------------------ | ------------------------------- |
+| 0     | Process         | Sensors, actuators | Physical world interaction      |
+| 1     | Basic Control   | PLCs, RTUs         | Direct process control          |
+| 2     | Area Control    | HMIs, DCS          | Operator interface, supervision |
+| 3     | Site Operations | SCADA, EWS         | Site-wide monitoring            |
+| 4     | Site Business   | Historian, MES     | Data analytics, scheduling      |
+| 5     | Enterprise      | ERP, email         | Business systems                |
 
 ## Key Components
 
@@ -97,6 +97,7 @@ flowchart LR
 ```
 
 **Characteristics:**
+
 - Deterministic execution (scan cycle)
 - Real-time response (milliseconds)
 - Designed for reliability (24/7 operation)
@@ -105,6 +106,7 @@ flowchart LR
 ### RTU (Remote Terminal Unit)
 
 Similar to PLCs but designed for:
+
 - Remote/unmanned locations
 - Wide-area communication (radio, cellular)
 - Environmental hardening
@@ -113,6 +115,7 @@ Similar to PLCs but designed for:
 ### HMI (Human-Machine Interface)
 
 Operator interface providing:
+
 - Process visualization
 - Alarm management
 - Setpoint adjustment
@@ -121,6 +124,7 @@ Operator interface providing:
 ### SCADA (Supervisory Control and Data Acquisition)
 
 Central system for:
+
 - Aggregating data from multiple PLCs/RTUs
 - Providing enterprise-wide visibility
 - Historical data storage
@@ -149,16 +153,16 @@ sequenceDiagram
 
 **Function Codes:**
 
-| Code | Function | Type |
-|------|----------|------|
-| 01 | Read Coils | Read |
-| 02 | Read Discrete Inputs | Read |
-| 03 | Read Holding Registers | Read |
-| 04 | Read Input Registers | Read |
-| 05 | Write Single Coil | Write |
-| 06 | Write Single Register | Write |
-| 15 | Write Multiple Coils | Write |
-| 16 | Write Multiple Registers | Write |
+| Code | Function                 | Type  |
+| ---- | ------------------------ | ----- |
+| 01   | Read Coils               | Read  |
+| 02   | Read Discrete Inputs     | Read  |
+| 03   | Read Holding Registers   | Read  |
+| 04   | Read Input Registers     | Read  |
+| 05   | Write Single Coil        | Write |
+| 06   | Write Single Register    | Write |
+| 15   | Write Multiple Coils     | Write |
+| 16   | Write Multiple Registers | Write |
 
 ### DNP3 (Distributed Network Protocol)
 
@@ -179,6 +183,7 @@ flowchart TB
 ```
 
 **Key Features:**
+
 - Event-based reporting (unsolicited responses)
 - Time synchronization
 - Secure authentication (SA v5)
@@ -189,6 +194,7 @@ flowchart TB
 Modern, IT-friendly protocol for industrial interoperability.
 
 **Characteristics:**
+
 - Platform independent
 - Built-in security (encryption, authentication)
 - Complex data types
@@ -199,14 +205,14 @@ Modern, IT-friendly protocol for industrial interoperability.
 
 ICS traffic is fundamentally different from IT traffic:
 
-| Characteristic | IT Traffic | ICS Traffic |
-|----------------|------------|-------------|
-| Volume | High, variable | Low, predictable |
-| Patterns | Irregular | Highly periodic |
-| Endpoints | Dynamic | Static, known |
-| Protocols | HTTP, SQL, etc. | Modbus, DNP3, OPC |
-| Tolerance | Retries OK | Real-time critical |
-| Lifespan | Short connections | Long-lived sessions |
+| Characteristic | IT Traffic        | ICS Traffic         |
+| -------------- | ----------------- | ------------------- |
+| Volume         | High, variable    | Low, predictable    |
+| Patterns       | Irregular         | Highly periodic     |
+| Endpoints      | Dynamic           | Static, known       |
+| Protocols      | HTTP, SQL, etc.   | Modbus, DNP3, OPC   |
+| Tolerance      | Retries OK        | Real-time critical  |
+| Lifespan       | Short connections | Long-lived sessions |
 
 ### Traffic Patterns
 
@@ -219,6 +225,7 @@ xychart-beta
 ```
 
 **Normal characteristics:**
+
 - Consistent polling intervals (100ms - 10s typical)
 - Predictable packet sizes
 - Fixed communication pairs
@@ -229,11 +236,13 @@ xychart-beta
 The deterministic nature of ICS traffic creates both opportunities and challenges:
 
 **Opportunities:**
+
 - Easy to establish baselines
 - Small deviations are significant
 - Fewer false positives from "normal noise"
 
 **Challenges:**
+
 - Legitimate changes (maintenance) look anomalous
 - Low traffic volume means fewer samples
 - Protocol diversity requires multiple parsers

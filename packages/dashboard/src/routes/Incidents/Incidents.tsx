@@ -1,15 +1,7 @@
 import { Check, CheckCircle, Clock, Eye, FileWarning, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Spinner
-} from '@/components/ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Spinner } from '@/components/ui'
 import { acknowledgeIncident, getIncidents, resolveIncident } from '@/lib/api'
 import type { Incident, IncidentStatus } from '@/lib/types'
 import { cn, formatDate, formatRelativeTime } from '@/lib/utils'
@@ -91,9 +83,7 @@ export function Incidents() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">Incidents</h1>
-              <p className="text-sm text-muted-foreground">
-                {incidents.length} incidents
-              </p>
+              <p className="text-sm text-muted-foreground">{incidents.length} incidents</p>
             </div>
             <Button variant="outline" size="sm" onClick={fetchIncidents}>
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -119,9 +109,7 @@ export function Incidents() {
         {/* Incident list */}
         <div className="h-[calc(100vh-180px)] overflow-auto scrollbar-thin">
           {error ? (
-            <div className="flex items-center justify-center p-8 text-destructive">
-              {error}
-            </div>
+            <div className="flex items-center justify-center p-8 text-destructive">{error}</div>
           ) : incidents.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-muted-foreground">
               <CheckCircle className="h-12 w-12 mb-2" />
@@ -142,9 +130,7 @@ export function Incidents() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <Badge
-                          variant={
-                            incident.priority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'
-                          }
+                          variant={incident.priority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'}
                         >
                           {incident.priority}
                         </Badge>
@@ -175,11 +161,7 @@ export function Incidents() {
           <div className="h-full overflow-auto p-4 scrollbar-thin">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Incident Details</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedIncident(null)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setSelectedIncident(null)}>
                 ×
               </Button>
             </div>
@@ -187,15 +169,11 @@ export function Incidents() {
             <div className="space-y-4">
               <div className="flex gap-2">
                 <Badge
-                  variant={
-                    selectedIncident.priority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'
-                  }
+                  variant={selectedIncident.priority.toLowerCase() as 'p1' | 'p2' | 'p3' | 'p4'}
                 >
                   {selectedIncident.priority}
                 </Badge>
-                <Badge variant={selectedIncident.status}>
-                  {selectedIncident.status}
-                </Badge>
+                <Badge variant={selectedIncident.status}>{selectedIncident.status}</Badge>
               </div>
 
               <div>
@@ -226,9 +204,7 @@ export function Incidents() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Alert Count</span>
-                      <span className="font-mono">
-                        {selectedIncident.alert_ids.length}
-                      </span>
+                      <span className="font-mono">{selectedIncident.alert_ids.length}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -286,9 +262,7 @@ export function Incidents() {
                   <CardTitle className="text-sm">Description</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedIncident.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{selectedIncident.description}</p>
                 </CardContent>
               </Card>
 

@@ -14,6 +14,7 @@ make dev
 ```
 
 This starts:
+
 - **Kafka** - Message broker
 - **Redis** - Caching layer
 - **Simulator** - Generates test Modbus traffic
@@ -30,6 +31,7 @@ docker compose ps
 ```
 
 Expected output:
+
 ```
 NAME            STATUS
 ics-kafka       running (healthy)
@@ -69,10 +71,10 @@ curl -X POST http://localhost:8083/attack/stop
 
 **Available attack modes:**
 
-| Mode | Description |
-|------|-------------|
+| Mode             | Description                           |
+| ---------------- | ------------------------------------- |
 | `reconnaissance` | Device enumeration using Modbus FC 43 |
-| `write_attack` | Unauthorized write commands |
+| `write_attack`   | Unauthorized write commands           |
 
 ## Explore the Simulator API
 
@@ -108,6 +110,7 @@ make monitoring
 ```
 
 Access:
+
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3001 (admin/admin)
 

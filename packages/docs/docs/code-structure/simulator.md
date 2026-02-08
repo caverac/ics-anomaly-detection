@@ -4,13 +4,13 @@ The simulator package is a Python service that generates synthetic ICS traffic f
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | Python |
-| Location | `packages/simulator/` |
-| Input | API commands |
-| Output | Kafka topic `ics.raw.packets` |
-| Port | 8083 (API + metrics) |
+| Property | Value                         |
+| -------- | ----------------------------- |
+| Language | Python                        |
+| Location | `packages/simulator/`         |
+| Input    | API commands                  |
+| Output   | Kafka topic `ics.raw.packets` |
+| Port     | 8083 (API + metrics)          |
 
 ## What it does
 
@@ -64,32 +64,32 @@ Messages published to `ics.raw.packets`:
 
 ### PLCs/RTUs (destinations)
 
-| IP | Unit ID | Type | Register Range |
-|----|---------|------|----------------|
-| 192.168.1.10 | 1 | PLC | 0-99 |
-| 192.168.1.11 | 2 | PLC | 100-199 |
-| 192.168.1.12 | 3 | PLC | 200-299 |
-| 192.168.1.20 | 1 | RTU | 0-49 |
+| IP           | Unit ID | Type | Register Range |
+| ------------ | ------- | ---- | -------------- |
+| 192.168.1.10 | 1       | PLC  | 0-99           |
+| 192.168.1.11 | 2       | PLC  | 100-199        |
+| 192.168.1.12 | 3       | PLC  | 200-299        |
+| 192.168.1.20 | 1       | RTU  | 0-49           |
 
 ### HMI stations (sources)
 
-| IP | Type |
-|----|------|
-| 192.168.1.100 | HMI |
-| 192.168.1.101 | HMI |
+| IP            | Type |
+| ------------- | ---- |
+| 192.168.1.100 | HMI  |
+| 192.168.1.101 | HMI  |
 
 ## Modbus function codes
 
 The simulator generates traffic with realistic function code distribution:
 
-| Code | Function | Probability |
-|------|----------|-------------|
-| 0x03 | Read Holding Registers | 60% |
-| 0x04 | Read Input Registers | 20% |
-| 0x06 | Write Single Register | 10% |
-| 0x10 | Write Multiple Registers | 5% |
-| 0x01 | Read Coils | 3% |
-| 0x05 | Write Single Coil | 2% |
+| Code | Function                 | Probability |
+| ---- | ------------------------ | ----------- |
+| 0x03 | Read Holding Registers   | 60%         |
+| 0x04 | Read Input Registers     | 20%         |
+| 0x06 | Write Single Register    | 10%         |
+| 0x10 | Write Multiple Registers | 5%          |
+| 0x01 | Read Coils               | 3%          |
+| 0x05 | Write Single Coil        | 2%          |
 
 ## API endpoints
 
@@ -141,13 +141,13 @@ curl -X POST http://localhost:8083/attack/stop
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `KAFKA_BROKERS` | Kafka broker addresses | `localhost:9092` |
-| `KAFKA_TOPIC` | Output Kafka topic | `ics.raw.packets` |
-| `SIMULATOR_RATE` | Messages per second | `100` |
-| `SIMULATOR_PROTOCOL` | Protocol to simulate | `modbus` |
-| `METRICS_PORT` | API/metrics port | `8083` |
+| Environment Variable | Description            | Default           |
+| -------------------- | ---------------------- | ----------------- |
+| `KAFKA_BROKERS`      | Kafka broker addresses | `localhost:9092`  |
+| `KAFKA_TOPIC`        | Output Kafka topic     | `ics.raw.packets` |
+| `SIMULATOR_RATE`     | Messages per second    | `100`             |
+| `SIMULATOR_PROTOCOL` | Protocol to simulate   | `modbus`          |
+| `METRICS_PORT`       | API/metrics port       | `8083`            |
 
 ## How to run
 
@@ -179,11 +179,11 @@ python src/main.py
 
 ## Metrics
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `simulator_messages_sent_total` | counter | Messages sent (by protocol) |
-| `simulator_errors_total` | counter | Send errors |
-| `simulator_message_latency_seconds` | histogram | Message generation time |
+| Metric                              | Type      | Description                 |
+| ----------------------------------- | --------- | --------------------------- |
+| `simulator_messages_sent_total`     | counter   | Messages sent (by protocol) |
+| `simulator_errors_total`            | counter   | Send errors                 |
+| `simulator_message_latency_seconds` | histogram | Message generation time     |
 
 ## Testing the pipeline
 

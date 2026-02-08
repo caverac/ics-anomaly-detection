@@ -13,10 +13,7 @@ const API_BASE = '/api'
 /**
  * Fetch wrapper with error handling
  */
-async function fetchApi<T>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<T> {
+async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers: {

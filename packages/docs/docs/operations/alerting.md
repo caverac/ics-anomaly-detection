@@ -27,39 +27,40 @@ The alerting service is configured via environment variables:
 
 ### Core Settings
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092` | Kafka connection |
-| `KAFKA_INPUT_TOPIC` | `ics.anomalies` | Source topic |
-| `KAFKA_OUTPUT_TOPIC` | `ics.alerts` | Output topic |
-| `REDIS_URL` | `redis://redis:6379` | State storage |
-| `API_PORT` | `8084` | REST API port |
+| Variable                  | Default              | Description      |
+| ------------------------- | -------------------- | ---------------- |
+| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092`         | Kafka connection |
+| `KAFKA_INPUT_TOPIC`       | `ics.anomalies`      | Source topic     |
+| `KAFKA_OUTPUT_TOPIC`      | `ics.alerts`         | Output topic     |
+| `REDIS_URL`               | `redis://redis:6379` | State storage    |
+| `API_PORT`                | `8084`               | REST API port    |
 
 ### Correlation Settings
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CORRELATION_WINDOW_SECONDS` | `300` | Group anomalies within 5 minutes |
+| Variable                     | Default | Description                      |
+| ---------------------------- | ------- | -------------------------------- |
+| `CORRELATION_WINDOW_SECONDS` | `300`   | Group anomalies within 5 minutes |
 
 Anomalies are grouped into incidents by correlation key: `{src_ip}:{dst_ip}:{protocol}`
 
 ### Deduplication Settings
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DEDUP_SUPPRESSION_SECONDS` | `60` | Suppress duplicate alerts |
+| Variable                    | Default | Description               |
+| --------------------------- | ------- | ------------------------- |
+| `DEDUP_SUPPRESSION_SECONDS` | `60`    | Suppress duplicate alerts |
 
 Prevents alert fatigue by suppressing repeated alerts for the same correlation key within the suppression window.
 
 ### Escalation Settings
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ESCALATION_P3_THRESHOLD` | `5` | Anomalies to escalate to P3 |
-| `ESCALATION_P2_THRESHOLD` | `10` | Anomalies to escalate to P2 |
-| `ESCALATION_P1_THRESHOLD` | `20` | Anomalies to escalate to P1 |
+| Variable                  | Default | Description                 |
+| ------------------------- | ------- | --------------------------- |
+| `ESCALATION_P3_THRESHOLD` | `5`     | Anomalies to escalate to P3 |
+| `ESCALATION_P2_THRESHOLD` | `10`    | Anomalies to escalate to P2 |
+| `ESCALATION_P1_THRESHOLD` | `20`    | Anomalies to escalate to P1 |
 
 Priority escalation rules:
+
 - **P4**: Initial incident (< 5 anomalies)
 - **P3**: 5+ anomalies in correlation window
 - **P2**: 10+ anomalies OR HIGH severity
@@ -67,12 +68,12 @@ Priority escalation rules:
 
 ### Notification Settings
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WEBHOOK_ENABLED` | `false` | Enable webhook notifications |
-| `WEBHOOK_URL` | - | Webhook endpoint URL |
-| `SLACK_ENABLED` | `false` | Enable Slack notifications |
-| `SLACK_WEBHOOK_URL` | - | Slack incoming webhook URL |
+| Variable            | Default | Description                  |
+| ------------------- | ------- | ---------------------------- |
+| `WEBHOOK_ENABLED`   | `false` | Enable webhook notifications |
+| `WEBHOOK_URL`       | -       | Webhook endpoint URL         |
+| `SLACK_ENABLED`     | `false` | Enable Slack notifications   |
+| `SLACK_WEBHOOK_URL` | -       | Slack incoming webhook URL   |
 
 ## Notification Channels
 
@@ -98,8 +99,8 @@ Enable generic webhook notifications:
 # docker-compose.yml
 alerting:
   environment:
-    WEBHOOK_ENABLED: "true"
-    WEBHOOK_URL: "https://your-endpoint.com/alerts"
+    WEBHOOK_ENABLED: 'true'
+    WEBHOOK_URL: 'https://your-endpoint.com/alerts'
 ```
 
 Webhook payload:
@@ -127,11 +128,12 @@ Enable Slack notifications:
 ```yaml
 alerting:
   environment:
-    SLACK_ENABLED: "true"
-    SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/xxx/yyy/zzz"
+    SLACK_ENABLED: 'true'
+    SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/xxx/yyy/zzz'
 ```
 
 Creates formatted Slack messages with:
+
 - Severity-colored attachment
 - Alert title and description
 - Source/destination IPs
@@ -154,16 +156,16 @@ docker compose exec kafka kafka-console-consumer.sh \
 
 Anomaly types map to default severities:
 
-| Anomaly Type | Default Severity | Rationale |
-|--------------|------------------|-----------|
-| `COMMAND_INJECTION` | CRITICAL | Direct process impact |
-| `PROTOCOL_VIOLATION` | CRITICAL | Active attack indicator |
-| `UNAUTHORIZED_ACCESS` | HIGH | Potential reconnaissance/attack |
-| `DATA_EXFILTRATION` | HIGH | Information theft |
-| `RECONNAISSANCE` | HIGH | Attack precursor |
-| `VOLUME_ANOMALY` | MEDIUM | May indicate issues |
-| `TIMING_ANOMALY` | MEDIUM | May indicate collection |
-| `UNKNOWN` | MEDIUM | Requires investigation |
+| Anomaly Type          | Default Severity | Rationale                       |
+| --------------------- | ---------------- | ------------------------------- |
+| `COMMAND_INJECTION`   | CRITICAL         | Direct process impact           |
+| `PROTOCOL_VIOLATION`  | CRITICAL         | Active attack indicator         |
+| `UNAUTHORIZED_ACCESS` | HIGH             | Potential reconnaissance/attack |
+| `DATA_EXFILTRATION`   | HIGH             | Information theft               |
+| `RECONNAISSANCE`      | HIGH             | Attack precursor                |
+| `VOLUME_ANOMALY`      | MEDIUM           | May indicate issues             |
+| `TIMING_ANOMALY`      | MEDIUM           | May indicate collection         |
+| `UNKNOWN`             | MEDIUM           | Requires investigation          |
 
 ## Alert Suppression
 
@@ -240,15 +242,15 @@ alerting:
     ESCALATION_P1_THRESHOLD: 20
 
     # Notifications
-    WEBHOOK_ENABLED: "true"
-    WEBHOOK_URL: "https://alerts.example.com/webhook"
-    SLACK_ENABLED: "true"
-    SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/xxx"
+    WEBHOOK_ENABLED: 'true'
+    WEBHOOK_URL: 'https://alerts.example.com/webhook'
+    SLACK_ENABLED: 'true'
+    SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/xxx'
 
     # API
     API_PORT: 8084
   ports:
-    - "8084:8084"
+    - '8084:8084'
   depends_on:
     - kafka
     - redis

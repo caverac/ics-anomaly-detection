@@ -42,10 +42,10 @@ GET /health
 }
 ```
 
-| Status | Description |
-|--------|-------------|
-| `healthy` | All connections operational |
-| `degraded` | Some connections failing |
+| Status     | Description                 |
+| ---------- | --------------------------- |
+| `healthy`  | All connections operational |
+| `degraded` | Some connections failing    |
 
 ### Metrics
 
@@ -101,11 +101,11 @@ GET /alerts
 
 **Query Parameters:**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | int | 50 | Maximum alerts to return |
-| `status` | string | - | Filter: `OPEN`, `ACKNOWLEDGED`, `RESOLVED` |
-| `severity` | string | - | Filter: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
+| Parameter  | Type   | Default | Description                                 |
+| ---------- | ------ | ------- | ------------------------------------------- |
+| `limit`    | int    | 50      | Maximum alerts to return                    |
+| `status`   | string | -       | Filter: `OPEN`, `ACKNOWLEDGED`, `RESOLVED`  |
+| `severity` | string | -       | Filter: `LOW`, `MEDIUM`, `HIGH`, `CRITICAL` |
 
 **Response:**
 
@@ -148,6 +148,7 @@ GET /alerts/{alert_id}
 **Response:** Same schema as list item.
 
 **Errors:**
+
 - `404` - Alert not found
 
 ### Acknowledge Alert
@@ -198,10 +199,10 @@ GET /incidents
 
 **Query Parameters:**
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | int | 50 | Maximum incidents to return |
-| `status` | string | - | Filter: `ACTIVE`, `ACKNOWLEDGED`, `RESOLVED` |
+| Parameter | Type   | Default | Description                                  |
+| --------- | ------ | ------- | -------------------------------------------- |
+| `limit`   | int    | 50      | Maximum incidents to return                  |
+| `status`  | string | -       | Filter: `ACTIVE`, `ACKNOWLEDGED`, `RESOLVED` |
 
 **Response:**
 
@@ -248,52 +249,52 @@ POST /incidents/{incident_id}/resolve
 
 ### AlertSeverity
 
-| Value | Description |
-|-------|-------------|
-| `LOW` | Minor deviation, informational |
-| `MEDIUM` | Moderate anomaly, investigate |
-| `HIGH` | Significant threat indicator |
-| `CRITICAL` | Immediate action required |
+| Value      | Description                    |
+| ---------- | ------------------------------ |
+| `LOW`      | Minor deviation, informational |
+| `MEDIUM`   | Moderate anomaly, investigate  |
+| `HIGH`     | Significant threat indicator   |
+| `CRITICAL` | Immediate action required      |
 
 ### AlertStatus
 
-| Value | Description |
-|-------|-------------|
-| `OPEN` | New, unacknowledged alert |
+| Value          | Description                    |
+| -------------- | ------------------------------ |
+| `OPEN`         | New, unacknowledged alert      |
 | `ACKNOWLEDGED` | Analyst is aware/investigating |
-| `RESOLVED` | Alert has been addressed |
+| `RESOLVED`     | Alert has been addressed       |
 
 ### AnomalyType
 
-| Value | MITRE Mapping |
-|-------|---------------|
-| `RECONNAISSANCE` | T0846 |
-| `TIMING_ANOMALY` | T0882 |
-| `VOLUME_ANOMALY` | - |
-| `PROTOCOL_VIOLATION` | T0855 |
-| `UNAUTHORIZED_ACCESS` | T0821 |
-| `DATA_EXFILTRATION` | T0882 |
-| `COMMAND_INJECTION` | T0831 |
-| `UNKNOWN` | - |
+| Value                 | MITRE Mapping |
+| --------------------- | ------------- |
+| `RECONNAISSANCE`      | T0846         |
+| `TIMING_ANOMALY`      | T0882         |
+| `VOLUME_ANOMALY`      | -             |
+| `PROTOCOL_VIOLATION`  | T0855         |
+| `UNAUTHORIZED_ACCESS` | T0821         |
+| `DATA_EXFILTRATION`   | T0882         |
+| `COMMAND_INJECTION`   | T0831         |
+| `UNKNOWN`             | -             |
 
 ## Incident Schema
 
 ### IncidentStatus
 
-| Value | Description |
-|-------|-------------|
-| `ACTIVE` | Ongoing incident |
+| Value          | Description        |
+| -------------- | ------------------ |
+| `ACTIVE`       | Ongoing incident   |
 | `ACKNOWLEDGED` | Being investigated |
-| `RESOLVED` | Incident closed |
+| `RESOLVED`     | Incident closed    |
 
 ### IncidentPriority
 
-| Priority | Criteria |
-|----------|----------|
-| `P4` | Initial incident (< 5 anomalies) |
-| `P3` | 5+ anomalies in window |
-| `P2` | 10+ anomalies or HIGH severity |
-| `P1` | 20+ anomalies or CRITICAL severity or multi-target |
+| Priority | Criteria                                           |
+| -------- | -------------------------------------------------- |
+| `P4`     | Initial incident (< 5 anomalies)                   |
+| `P3`     | 5+ anomalies in window                             |
+| `P2`     | 10+ anomalies or HIGH severity                     |
+| `P1`     | 20+ anomalies or CRITICAL severity or multi-target |
 
 ## Error Responses
 
@@ -305,11 +306,11 @@ Errors follow FastAPI conventions:
 }
 ```
 
-| Status | Description |
-|--------|-------------|
-| `404` | Resource not found |
-| `422` | Validation error |
-| `500` | Internal server error |
+| Status | Description           |
+| ------ | --------------------- |
+| `404`  | Resource not found    |
+| `422`  | Validation error      |
+| `500`  | Internal server error |
 
 ## Example Usage
 

@@ -10,13 +10,13 @@ The ICS Anomaly Detection Engine is a machine learning system for detecting anom
 
 Industrial Control Systems present unique challenges for anomaly detection:
 
-| Challenge | Our Approach |
-|-----------|--------------|
-| **Deterministic traffic** | Baseline learning with tight deviation bounds |
-| **Protocol diversity** | Multi-protocol parser ([Modbus](https://en.wikipedia.org/wiki/Modbus), [DNP3](https://en.wikipedia.org/wiki/DNP3), [OPC-UA](https://en.wikipedia.org/wiki/OPC_Unified_Architecture)) |
-| **Resource constraints** | Optimized models for edge deployment |
-| **Safety-critical** | Passive monitoring only, no active responses |
-| **Rare attacks** | Unsupervised learning + synthetic attack injection |
+| Challenge                 | Our Approach                                                                                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Deterministic traffic** | Baseline learning with tight deviation bounds                                                                                                                                        |
+| **Protocol diversity**    | Multi-protocol parser ([Modbus](https://en.wikipedia.org/wiki/Modbus), [DNP3](https://en.wikipedia.org/wiki/DNP3), [OPC-UA](https://en.wikipedia.org/wiki/OPC_Unified_Architecture)) |
+| **Resource constraints**  | Optimized models for edge deployment                                                                                                                                                 |
+| **Safety-critical**       | Passive monitoring only, no active responses                                                                                                                                         |
+| **Rare attacks**          | Unsupervised learning + synthetic attack injection                                                                                                                                   |
 
 ## Key Features
 
@@ -59,10 +59,10 @@ flowchart TB
 
 ## Target Users
 
-| User | Use Case |
-|------|----------|
+| User             | Use Case                            |
+| ---------------- | ----------------------------------- |
 | **ML Engineers** | Building ICS/OT security ML systems |
-| **Students** | Learning about ICS security and ML |
+| **Students**     | Learning about ICS security and ML  |
 
 ## What You'll Learn
 

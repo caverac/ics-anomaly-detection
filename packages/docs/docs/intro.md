@@ -16,13 +16,13 @@ A machine learning system for detecting anomalies in Industrial Control System (
 
 This project builds an end-to-end solution for ICS/OT cybersecurity ML engineering, with a focus on practical implementation and real-world applicability.
 
-| Capability | Implementation |
-|------------|----------------|
-| Time-series analysis | Multi-variate anomaly detection on protocol features |
-| Threat detection | Attack pattern recognition (reconnaissance, exploitation, C2) |
-| Production ML | Ensemble models with hot-reload and monitoring |
-| Real-time processing | Kafka streaming with sub-second latency |
-| Simulation | Realistic traffic generation with injectable attack scenarios |
+| Capability           | Implementation                                                |
+| -------------------- | ------------------------------------------------------------- |
+| Time-series analysis | Multi-variate anomaly detection on protocol features          |
+| Threat detection     | Attack pattern recognition (reconnaissance, exploitation, C2) |
+| Production ML        | Ensemble models with hot-reload and monitoring                |
+| Real-time processing | Kafka streaming with sub-second latency                       |
+| Simulation           | Realistic traffic generation with injectable attack scenarios |
 
 ## Architecture
 
@@ -78,27 +78,27 @@ flowchart LR
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|------------|
-| Languages | Python, Go, Rust, TypeScript |
-| ML Framework | PyTorch, scikit-learn |
-| Stream Processing | Apache Kafka (KRaft mode) |
-| State Storage | Redis |
-| Frontend | React 19, Vite 7, Tailwind CSS 4 |
-| Monitoring | Prometheus, Grafana |
-| Containerization | Docker |
+| Layer             | Technology                       |
+| ----------------- | -------------------------------- |
+| Languages         | Python, Go, Rust, TypeScript     |
+| ML Framework      | PyTorch, scikit-learn            |
+| Stream Processing | Apache Kafka (KRaft mode)        |
+| State Storage     | Redis                            |
+| Frontend          | React 19, Vite 7, Tailwind CSS 4 |
+| Monitoring        | Prometheus, Grafana              |
+| Containerization  | Docker                           |
 
 ## Services
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Dashboard | 3090 | React monitoring UI |
-| Docs | 3000 | Docusaurus documentation |
-| Alerting API | 8084 | Alert/incident management |
-| Simulator API | 8083 | Traffic simulation control |
-| Kafka UI | 8080 | Topic browser (debug mode) |
-| Grafana | 3001 | Dashboards (monitoring mode) |
-| Prometheus | 9090 | Metrics (monitoring mode) |
+| Service       | Port | Description                  |
+| ------------- | ---- | ---------------------------- |
+| Dashboard     | 3090 | React monitoring UI          |
+| Docs          | 3000 | Docusaurus documentation     |
+| Alerting API  | 8084 | Alert/incident management    |
+| Simulator API | 8083 | Traffic simulation control   |
+| Kafka UI      | 8080 | Topic browser (debug mode)   |
+| Grafana       | 3001 | Dashboards (monitoring mode) |
+| Prometheus    | 9090 | Metrics (monitoring mode)    |
 
 ## Quick Start
 

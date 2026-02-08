@@ -401,12 +401,12 @@ flowchart TB
 
 ### Retraining Triggers
 
-| Trigger | Condition | Action |
-|---------|-----------|--------|
-| Scheduled | Daily at 2 AM UTC | Full retrain |
-| Performance degradation | F1 drops > 10% | Alert + retrain |
-| Data drift | Feature distribution shift | Alert + investigate |
-| Manual | Operator request | Immediate retrain |
+| Trigger                 | Condition                  | Action              |
+| ----------------------- | -------------------------- | ------------------- |
+| Scheduled               | Daily at 2 AM UTC          | Full retrain        |
+| Performance degradation | F1 drops > 10%             | Alert + retrain     |
+| Data drift              | Feature distribution shift | Alert + investigate |
+| Manual                  | Operator request           | Immediate retrain   |
 
 ### Data Drift Detection
 

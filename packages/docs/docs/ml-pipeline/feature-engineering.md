@@ -56,13 +56,14 @@ gantt
 
 **Window Configuration:**
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| Window Size | 60 seconds | Fixed window duration |
-| Emit Frequency | On window close | Features extracted when window ends |
-| Key | `(src_ip, dst_ip, protocol)` | Separate windows per connection |
+| Parameter      | Value                        | Description                         |
+| -------------- | ---------------------------- | ----------------------------------- |
+| Window Size    | 60 seconds                   | Fixed window duration               |
+| Emit Frequency | On window close              | Features extracted when window ends |
+| Key            | `(src_ip, dst_ip, protocol)` | Separate windows per connection     |
 
 **Why tumbling windows?**
+
 - Deterministic behavior (reproducible)
 - No double-counting events
 - Simpler state management
@@ -90,13 +91,13 @@ class VolumeFeatures:
         }
 ```
 
-| Feature | Description | Normal Range |
-|---------|-------------|--------------|
-| `msg_count` | Total messages | 100-1000/min |
-| `bytes_total` | Total bytes | 10KB-100KB/min |
-| `unique_sources` | Distinct source IPs | 1-5 |
-| `unique_destinations` | Distinct dest IPs | 5-20 |
-| `unique_pairs` | Distinct src-dst pairs | 10-50 |
+| Feature               | Description            | Normal Range   |
+| --------------------- | ---------------------- | -------------- |
+| `msg_count`           | Total messages         | 100-1000/min   |
+| `bytes_total`         | Total bytes            | 10KB-100KB/min |
+| `unique_sources`      | Distinct source IPs    | 1-5            |
+| `unique_destinations` | Distinct dest IPs      | 5-20           |
+| `unique_pairs`        | Distinct src-dst pairs | 10-50          |
 
 ### Timing Features
 
@@ -122,13 +123,13 @@ class TimingFeatures:
         }
 ```
 
-| Feature | Description | Anomaly Signal |
-|---------|-------------|----------------|
-| `iat_mean` | Average time between messages | Large deviation |
-| `iat_std` | Variability in timing | High = irregular |
-| `iat_cv` | Relative variability | High = unstable |
-| `burst_score` | Burst detection (0-1) | > 0.7 = burst |
-| `periodicity_score` | How periodic (0-1) | < 0.3 = aperiodic |
+| Feature             | Description                   | Anomaly Signal    |
+| ------------------- | ----------------------------- | ----------------- |
+| `iat_mean`          | Average time between messages | Large deviation   |
+| `iat_std`           | Variability in timing         | High = irregular  |
+| `iat_cv`            | Relative variability          | High = unstable   |
+| `burst_score`       | Burst detection (0-1)         | > 0.7 = burst     |
+| `periodicity_score` | How periodic (0-1)            | < 0.3 = aperiodic |
 
 **Burst Detection Algorithm:**
 
@@ -169,12 +170,12 @@ class ModbusFeatures:
         }
 ```
 
-| Feature | Description | Anomaly Signal |
-|---------|-------------|----------------|
-| `read_write_ratio` | Read vs write operations | Low = unusual writes |
-| `error_rate` | Exception responses | High = invalid commands |
-| `function_code_entropy` | Diversity of operations | High = scanning |
-| `unique_registers` | Distinct addresses accessed | High = enumeration |
+| Feature                 | Description                 | Anomaly Signal          |
+| ----------------------- | --------------------------- | ----------------------- |
+| `read_write_ratio`      | Read vs write operations    | Low = unusual writes    |
+| `error_rate`            | Exception responses         | High = invalid commands |
+| `function_code_entropy` | Diversity of operations     | High = scanning         |
+| `unique_registers`      | Distinct addresses accessed | High = enumeration      |
 
 ### Network Features
 
@@ -255,7 +256,7 @@ interface FeatureVector {
   // Metadata (not used in ML)
   timestamp: string
   window_end: string
-  key: string  // src_ip:dst_ip
+  key: string // src_ip:dst_ip
 
   // Volume (18 features: 6 × 3 windows)
   msg_count_1m: number

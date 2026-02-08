@@ -6,7 +6,12 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Getting Started',
-      items: ['getting-started/overview', 'getting-started/installation', 'getting-started/quickstart', 'getting-started/docker-setup']
+      items: [
+        'getting-started/overview',
+        'getting-started/installation',
+        'getting-started/quickstart',
+        'getting-started/docker-setup'
+      ]
     },
     {
       type: 'category',
@@ -22,11 +27,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Domain',
-      items: [
-        'domain/ics-fundamentals',
-        'domain/threat-landscape',
-        'domain/anomaly-types'
-      ]
+      items: ['domain/ics-fundamentals', 'domain/threat-landscape', 'domain/anomaly-types']
     },
     {
       type: 'category',
@@ -68,11 +69,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Simulation',
-      items: [
-        'simulation/traffic-generator',
-        'simulation/attack-scenarios',
-        'simulation/datasets'
-      ]
+      items: ['simulation/traffic-generator', 'simulation/attack-scenarios', 'simulation/datasets']
     },
     {
       type: 'category',

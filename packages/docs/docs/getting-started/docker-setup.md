@@ -73,6 +73,7 @@ make dev-dashboard
 ```
 
 This starts:
+
 - **Kafka** - Message broker (KRaft mode, no Zookeeper)
 - **Redis** - State storage for alerting
 - **Simulator** - Generates test Modbus traffic
@@ -84,46 +85,46 @@ This starts:
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `make up` | Start core infrastructure (Kafka, Redis) |
-| `make dev` | Start infra + simulator + parser + feature-engine |
-| `make dev-full` | Add anomaly detection |
-| `make dev-alerting` | Add alerting service |
-| `make dev-dashboard` | Full pipeline with React dashboard |
-| `make monitoring` | Add Prometheus + Grafana |
-| `make debug` | Add Kafka UI for inspection |
-| `make down` | Stop all services |
-| `make clean` | Remove containers and volumes |
-| `make logs` | Tail all container logs |
+| Command              | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `make up`            | Start core infrastructure (Kafka, Redis)          |
+| `make dev`           | Start infra + simulator + parser + feature-engine |
+| `make dev-full`      | Add anomaly detection                             |
+| `make dev-alerting`  | Add alerting service                              |
+| `make dev-dashboard` | Full pipeline with React dashboard                |
+| `make monitoring`    | Add Prometheus + Grafana                          |
+| `make debug`         | Add Kafka UI for inspection                       |
+| `make down`          | Stop all services                                 |
+| `make clean`         | Remove containers and volumes                     |
+| `make logs`          | Tail all container logs                           |
 
 ## Service Endpoints
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Dashboard | `localhost:3090` | React monitoring UI |
-| Alerting API | `localhost:8084` | Alert/incident management |
-| Simulator | `localhost:8083` | Traffic generation API |
-| Parser | `localhost:8082/metrics` | Prometheus metrics |
-| Kafka | `localhost:9094` | External broker access |
-| Redis | `localhost:6379` | State storage |
-| Kafka UI | `localhost:8080` | Topic browser (debug profile) |
-| Prometheus | `localhost:9090` | Metrics storage (monitoring profile) |
-| Grafana | `localhost:3001` | Dashboards (monitoring profile) |
+| Service      | URL                      | Description                          |
+| ------------ | ------------------------ | ------------------------------------ |
+| Dashboard    | `localhost:3090`         | React monitoring UI                  |
+| Alerting API | `localhost:8084`         | Alert/incident management            |
+| Simulator    | `localhost:8083`         | Traffic generation API               |
+| Parser       | `localhost:8082/metrics` | Prometheus metrics                   |
+| Kafka        | `localhost:9094`         | External broker access               |
+| Redis        | `localhost:6379`         | State storage                        |
+| Kafka UI     | `localhost:8080`         | Topic browser (debug profile)        |
+| Prometheus   | `localhost:9090`         | Metrics storage (monitoring profile) |
+| Grafana      | `localhost:3001`         | Dashboards (monitoring profile)      |
 
 ## Kafka Topics
 
 The system creates these topics automatically:
 
-| Topic | Description | Partitions |
-|-------|-------------|------------|
-| `ics.raw.packets` | Raw captured packets | 6 |
-| `ics.parsed.modbus` | Parsed Modbus messages | 6 |
-| `ics.parsed.dnp3` | Parsed DNP3 messages | 6 |
-| `ics.parsed.opcua` | Parsed OPC-UA messages | 6 |
-| `ics.features` | ML feature vectors | 6 |
-| `ics.anomalies` | Anomaly scores | 6 |
-| `ics.alerts` | Deduplicated alerts | 3 |
+| Topic               | Description            | Partitions |
+| ------------------- | ---------------------- | ---------- |
+| `ics.raw.packets`   | Raw captured packets   | 6          |
+| `ics.parsed.modbus` | Parsed Modbus messages | 6          |
+| `ics.parsed.dnp3`   | Parsed DNP3 messages   | 6          |
+| `ics.parsed.opcua`  | Parsed OPC-UA messages | 6          |
+| `ics.features`      | ML feature vectors     | 6          |
+| `ics.anomalies`     | Anomaly scores         | 6          |
+| `ics.alerts`        | Deduplicated alerts    | 3          |
 
 ```bash
 # List all topics
@@ -188,10 +189,10 @@ curl -X POST http://localhost:8083/attack/stop
 
 **Available attack modes:**
 
-| Mode | Description | Detection |
-|------|-------------|-----------|
-| `reconnaissance` | Device enumeration (FC 43) | High scan score |
-| `write_attack` | Unauthorized write commands | Unusual write ratio |
+| Mode             | Description                 | Detection           |
+| ---------------- | --------------------------- | ------------------- |
+| `reconnaissance` | Device enumeration (FC 43)  | High scan score     |
+| `write_attack`   | Unauthorized write commands | Unusual write ratio |
 
 ## Profiles
 
@@ -251,10 +252,11 @@ docker compose --profile capture up -d
 
 :::warning
 Live capture requires:
+
 - `NET_RAW` and `NET_ADMIN` capabilities
 - Host network mode
 - Root privileges or appropriate capabilities
-:::
+  :::
 
 ## Verify Setup
 
@@ -265,6 +267,7 @@ docker compose ps
 ```
 
 Expected output (with `make dev-dashboard`):
+
 ```
 NAME                   STATUS
 ics-kafka              running (healthy)
@@ -337,16 +340,16 @@ docker compose exec kafka kafka-consumer-groups.sh \
 
 ## Resource Requirements
 
-| Service | CPU | Memory |
-|---------|-----|--------|
-| Kafka | 1 core | 1 GB |
-| Redis | 0.5 core | 256 MB |
-| Simulator | 0.5 core | 256 MB |
-| Parser | 1 core | 512 MB |
-| Feature Engine | 0.5 core | 512 MB |
-| Anomaly Detection | 1 core | 1 GB |
-| Alerting | 0.5 core | 256 MB |
-| Dashboard | 0.5 core | 256 MB |
-| Prometheus | 0.5 core | 512 MB |
-| Grafana | 0.5 core | 256 MB |
-| **Total (full)** | **~6 cores** | **~5 GB** |
+| Service           | CPU          | Memory    |
+| ----------------- | ------------ | --------- |
+| Kafka             | 1 core       | 1 GB      |
+| Redis             | 0.5 core     | 256 MB    |
+| Simulator         | 0.5 core     | 256 MB    |
+| Parser            | 1 core       | 512 MB    |
+| Feature Engine    | 0.5 core     | 512 MB    |
+| Anomaly Detection | 1 core       | 1 GB      |
+| Alerting          | 0.5 core     | 256 MB    |
+| Dashboard         | 0.5 core     | 256 MB    |
+| Prometheus        | 0.5 core     | 512 MB    |
+| Grafana           | 0.5 core     | 256 MB    |
+| **Total (full)**  | **~6 cores** | **~5 GB** |

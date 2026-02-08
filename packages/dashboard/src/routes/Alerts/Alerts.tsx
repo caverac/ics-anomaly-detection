@@ -1,15 +1,7 @@
 import { AlertTriangle, Check, CheckCircle, Clock, Eye, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Spinner
-} from '@/components/ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Spinner } from '@/components/ui'
 import { acknowledgeAlert, getAlerts, resolveAlert } from '@/lib/api'
 import type { Alert, AlertSeverity, AlertStatus } from '@/lib/types'
 import { cn, formatDate, formatRelativeTime } from '@/lib/utils'
@@ -94,9 +86,7 @@ export function Alerts() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold">Alerts</h1>
-              <p className="text-sm text-muted-foreground">
-                {alerts.length} alerts
-              </p>
+              <p className="text-sm text-muted-foreground">{alerts.length} alerts</p>
             </div>
             <Button variant="outline" size="sm" onClick={fetchAlerts}>
               <RefreshCw className="mr-2 h-4 w-4" />
@@ -134,9 +124,7 @@ export function Alerts() {
         {/* Alert list */}
         <div className="h-[calc(100vh-180px)] overflow-auto scrollbar-thin">
           {error ? (
-            <div className="flex items-center justify-center p-8 text-destructive">
-              {error}
-            </div>
+            <div className="flex items-center justify-center p-8 text-destructive">{error}</div>
           ) : alerts.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-muted-foreground">
               <CheckCircle className="h-12 w-12 mb-2" />
@@ -186,20 +174,14 @@ export function Alerts() {
           <div className="h-full overflow-auto p-4 scrollbar-thin">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Alert Details</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedAlert(null)}
-              >
+              <Button variant="ghost" size="icon" onClick={() => setSelectedAlert(null)}>
                 ×
               </Button>
             </div>
 
             <div className="space-y-4">
               <div className="flex gap-2">
-                <Badge variant={selectedAlert.severity}>
-                  {selectedAlert.severity}
-                </Badge>
+                <Badge variant={selectedAlert.severity}>{selectedAlert.severity}</Badge>
                 <Badge variant={selectedAlert.status}>{selectedAlert.status}</Badge>
               </div>
 
@@ -248,9 +230,7 @@ export function Alerts() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Ensemble Score</span>
-                      <span className="font-mono">
-                        {selectedAlert.ensemble_score.toFixed(3)}
-                      </span>
+                      <span className="font-mono">{selectedAlert.ensemble_score.toFixed(3)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Confidence</span>

@@ -4,12 +4,12 @@ The anomaly detection service is a Python application that consumes feature vect
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | Python |
+| Property | Value                         |
+| -------- | ----------------------------- |
+| Language | Python                        |
 | Location | `packages/anomaly-detection/` |
-| Input | Kafka topic `ics.features` |
-| Output | Kafka topic `ics.anomalies` |
+| Input    | Kafka topic `ics.features`    |
+| Output   | Kafka topic `ics.anomalies`   |
 
 ## What it does
 
@@ -55,40 +55,45 @@ packages/anomaly-detection/
 ## ML models
 
 ### Isolation Forest
+
 Statistical anomaly detection that isolates anomalies by randomly partitioning features. Good for detecting point anomalies in high-dimensional data.
 
 ### One-Class SVM
+
 Support vector machine trained only on normal data. Creates a boundary around normal behavior and flags outliers.
 
 ### LSTM Autoencoder
+
 Neural network that learns to reconstruct normal traffic sequences. High reconstruction error indicates anomalies. Captures temporal patterns.
 
 ### Ensemble
+
 Combines model scores using configurable weights:
+
 - Each model produces a score from 0.0 (normal) to 1.0 (anomaly)
 - Weighted average determines final score
 - Thresholds map scores to classifications
 
 ## Classification levels
 
-| Level | Score Range | Description |
-|-------|-------------|-------------|
-| `NORMAL` | 0.0 - 0.3 | Expected behavior |
-| `SUSPICIOUS` | 0.3 - 0.5 | Slightly unusual, worth monitoring |
-| `ANOMALY` | 0.5 - 0.8 | Significant deviation from baseline |
-| `CRITICAL` | 0.8 - 1.0 | Severe anomaly, likely attack |
+| Level        | Score Range | Description                         |
+| ------------ | ----------- | ----------------------------------- |
+| `NORMAL`     | 0.0 - 0.3   | Expected behavior                   |
+| `SUSPICIOUS` | 0.3 - 0.5   | Slightly unusual, worth monitoring  |
+| `ANOMALY`    | 0.5 - 0.8   | Significant deviation from baseline |
+| `CRITICAL`   | 0.8 - 1.0   | Severe anomaly, likely attack       |
 
 ## Anomaly types
 
-| Type | Description |
-|------|-------------|
-| `RECONNAISSANCE` | Network scanning, enumeration |
-| `TIMING_ANOMALY` | Unusual request timing patterns |
-| `VOLUME_ANOMALY` | Abnormal traffic volume |
-| `PROTOCOL_VIOLATION` | Invalid or unusual protocol usage |
-| `UNAUTHORIZED_ACCESS` | Access to restricted addresses |
-| `DATA_EXFILTRATION` | Large data transfers |
-| `COMMAND_INJECTION` | Unexpected write operations |
+| Type                  | Description                       |
+| --------------------- | --------------------------------- |
+| `RECONNAISSANCE`      | Network scanning, enumeration     |
+| `TIMING_ANOMALY`      | Unusual request timing patterns   |
+| `VOLUME_ANOMALY`      | Abnormal traffic volume           |
+| `PROTOCOL_VIOLATION`  | Invalid or unusual protocol usage |
+| `UNAUTHORIZED_ACCESS` | Access to restricted addresses    |
+| `DATA_EXFILTRATION`   | Large data transfers              |
+| `COMMAND_INJECTION`   | Unexpected write operations       |
 
 ## Output schema
 
@@ -131,7 +136,7 @@ Combines model scores using configurable weights:
   "confidence": 0.85,
   "feature_contributions": {
     "fc_unique_count": 0.25,
-    "addr_range": 0.20,
+    "addr_range": 0.2,
     "fc_entropy": 0.15
   }
 }
@@ -139,14 +144,14 @@ Combines model scores using configurable weights:
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `KAFKA_BOOTSTRAP_SERVERS` | Kafka broker addresses | `localhost:9092` |
-| `KAFKA_INPUT_TOPIC` | Input topic | `ics.features` |
-| `KAFKA_OUTPUT_TOPIC` | Output topic | `ics.anomalies` |
-| `MODEL_PATH` | Path to trained models | `./models` |
-| `MODEL_HOT_RELOAD` | Enable hot-reloading | `true` |
-| `ANOMALY_DETECTION_LOG_LEVEL` | Log level | `INFO` |
+| Environment Variable          | Description            | Default          |
+| ----------------------------- | ---------------------- | ---------------- |
+| `KAFKA_BOOTSTRAP_SERVERS`     | Kafka broker addresses | `localhost:9092` |
+| `KAFKA_INPUT_TOPIC`           | Input topic            | `ics.features`   |
+| `KAFKA_OUTPUT_TOPIC`          | Output topic           | `ics.anomalies`  |
+| `MODEL_PATH`                  | Path to trained models | `./models`       |
+| `MODEL_HOT_RELOAD`            | Enable hot-reloading   | `true`           |
+| `ANOMALY_DETECTION_LOG_LEVEL` | Log level              | `INFO`           |
 
 ## How to run
 
@@ -181,11 +186,11 @@ pytest tests/ -v
 
 ## Key dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `confluent-kafka` | Kafka consumer/producer |
-| `scikit-learn` | Isolation Forest, One-Class SVM |
-| `torch` | LSTM Autoencoder |
-| `numpy` | Numerical computations |
-| `pydantic` | Data validation |
-| `structlog` | Structured logging |
+| Package           | Purpose                         |
+| ----------------- | ------------------------------- |
+| `confluent-kafka` | Kafka consumer/producer         |
+| `scikit-learn`    | Isolation Forest, One-Class SVM |
+| `torch`           | LSTM Autoencoder                |
+| `numpy`           | Numerical computations          |
+| `pydantic`        | Data validation                 |
+| `structlog`       | Structured logging              |

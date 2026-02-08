@@ -10,9 +10,10 @@ Real-time event streaming via WebSocket.
 The WebSocket API described below is a planned feature for real-time alert streaming. It is not currently implemented in the system.
 
 For real-time monitoring, use:
+
 - **Dashboard**: http://localhost:5173 (polls alerting API)
 - **Kafka Consumer**: Direct subscription to `ics.anomalies` or `ics.alerts` topics
-:::
+  :::
 
 ## Planned Architecture
 
@@ -91,7 +92,7 @@ The React dashboard polls the alerting API every 5 seconds:
 const { data: alerts } = useQuery({
   queryKey: ['alerts'],
   queryFn: fetchAlerts,
-  refetchInterval: 5000,
+  refetchInterval: 5000
 })
 ```
 

@@ -49,7 +49,7 @@ linters-settings:
 
   gosec:
     excludes:
-      - G104  # Audit errors not checked
+      - G104 # Audit errors not checked
 
 issues:
   exclude-use-default: false

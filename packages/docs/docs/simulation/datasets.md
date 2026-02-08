@@ -16,14 +16,14 @@ The system currently uses the traffic simulator for all testing and development.
 
 The most widely-used ICS security dataset.
 
-| Attribute | Value |
-|-----------|-------|
-| Source | iTrust, SUTD |
-| Domain | Water treatment |
-| Duration | 11 days (7 normal, 4 attack) |
-| Attacks | 36 attack scenarios |
-| Size | ~950MB |
-| Format | CSV |
+| Attribute | Value                        |
+| --------- | ---------------------------- |
+| Source    | iTrust, SUTD                 |
+| Domain    | Water treatment              |
+| Duration  | 11 days (7 normal, 4 attack) |
+| Attacks   | 36 attack scenarios          |
+| Size      | ~950MB                       |
+| Format    | CSV                          |
 
 **Download:** [iTrust Datasets](https://itrust.sutd.edu.sg/itrust-labs_datasets/)
 
@@ -41,6 +41,7 @@ swat = pd.read_csv("SWaT_Dataset_Attack_v0.csv")
 ```
 
 **Attack Types:**
+
 - Single-stage attacks (sensor manipulation)
 - Multi-stage attacks (coordinated)
 - Stealthy attacks (gradual changes)
@@ -49,13 +50,13 @@ swat = pd.read_csv("SWaT_Dataset_Attack_v0.csv")
 
 Water distribution network dataset with labeled attacks.
 
-| Attribute | Value |
-|-----------|-------|
-| Source | University of Exeter |
-| Domain | Water distribution |
-| Duration | 1 year simulation |
-| Attacks | 14 attack scenarios |
-| Format | CSV |
+| Attribute | Value                |
+| --------- | -------------------- |
+| Source    | University of Exeter |
+| Domain    | Water distribution   |
+| Duration  | 1 year simulation    |
+| Attacks   | 14 attack scenarios  |
+| Format    | CSV                  |
 
 **Download:** [BATADAL Website](https://www.batadal.net/)
 
@@ -63,24 +64,24 @@ Water distribution network dataset with labeled attacks.
 
 Hardware-in-the-loop testbed data.
 
-| Attribute | Value |
-|-----------|-------|
-| Source | NIST |
-| Domain | Power/Water hybrid |
-| Duration | Multiple runs |
-| Attacks | Various scenarios |
-| Format | CSV |
+| Attribute | Value              |
+| --------- | ------------------ |
+| Source    | NIST               |
+| Domain    | Power/Water hybrid |
+| Duration  | Multiple runs      |
+| Attacks   | Various scenarios  |
+| Format    | CSV                |
 
 ### Electra Dataset
 
 Power grid ICS dataset.
 
-| Attribute | Value |
-|-----------|-------|
-| Source | Mississippi State |
-| Domain | Power grid |
-| Protocol | DNP3, Modbus |
-| Format | PCAP |
+| Attribute | Value             |
+| --------- | ----------------- |
+| Source    | Mississippi State |
+| Domain    | Power grid        |
+| Protocol  | DNP3, Modbus      |
+| Format    | PCAP              |
 
 ## Dataset Comparison
 
@@ -195,12 +196,12 @@ curl -X POST http://localhost:8083/attack/start \
 
 The system stores all generated data in Kafka topics:
 
-| Topic | Contents | Retention |
-|-------|----------|-----------|
-| `ics.raw.packets` | Raw simulated packets | 7 days |
-| `ics.parsed.modbus` | Parsed Modbus messages | 7 days |
-| `ics.features` | Extracted feature vectors | 7 days |
-| `ics.anomalies` | Anomaly detection results | 7 days |
+| Topic               | Contents                  | Retention |
+| ------------------- | ------------------------- | --------- |
+| `ics.raw.packets`   | Raw simulated packets     | 7 days    |
+| `ics.parsed.modbus` | Parsed Modbus messages    | 7 days    |
+| `ics.features`      | Extracted feature vectors | 7 days    |
+| `ics.anomalies`     | Anomaly detection results | 7 days    |
 
 ### Exporting Data
 

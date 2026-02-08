@@ -68,29 +68,29 @@ flowchart TB
 
 #### Input Layer
 
-| Component | Responsibility | Key Logic |
-|-----------|---------------|-----------|
-| Kafka Consumer | Consume feature vectors | Batch consumption (100 msgs), auto-commit |
-| Input Validator | Validate feature schema | JSON Schema validation, null handling |
-| Normalizer | Scale features | Z-score normalization using stored stats |
+| Component       | Responsibility          | Key Logic                                 |
+| --------------- | ----------------------- | ----------------------------------------- |
+| Kafka Consumer  | Consume feature vectors | Batch consumption (100 msgs), auto-commit |
+| Input Validator | Validate feature schema | JSON Schema validation, null handling     |
+| Normalizer      | Scale features          | Z-score normalization using stored stats  |
 
 #### Model Layer
 
-| Component | Responsibility | Key Logic |
-|-----------|---------------|-----------|
-| Model Loader | Load models from registry | ONNX format, warm-up inference |
-| Model Cache | Keep models in memory | LRU cache, version tracking |
-| Isolation Forest | Point anomaly detection | Ensemble of 100 trees, contamination=0.01 |
-| LSTM-AE | Sequence anomaly detection | 2-layer LSTM, reconstruction error |
-| One-Class SVM | Boundary-based detection | RBF kernel, nu=0.01 |
+| Component        | Responsibility             | Key Logic                                 |
+| ---------------- | -------------------------- | ----------------------------------------- |
+| Model Loader     | Load models from registry  | ONNX format, warm-up inference            |
+| Model Cache      | Keep models in memory      | LRU cache, version tracking               |
+| Isolation Forest | Point anomaly detection    | Ensemble of 100 trees, contamination=0.01 |
+| LSTM-AE          | Sequence anomaly detection | 2-layer LSTM, reconstruction error        |
+| One-Class SVM    | Boundary-based detection   | RBF kernel, nu=0.01                       |
 
 #### Scoring Layer
 
-| Component | Responsibility | Key Logic |
-|-----------|---------------|-----------|
+| Component        | Responsibility       | Key Logic                               |
+| ---------------- | -------------------- | --------------------------------------- |
 | Score Aggregator | Combine model scores | Weighted average (configurable weights) |
-| Threshold Engine | Dynamic thresholding | Per-device, time-of-day adaptive |
-| Classifier | Label anomaly type | Rule-based + learned patterns |
+| Threshold Engine | Dynamic thresholding | Per-device, time-of-day adaptive        |
+| Classifier       | Label anomaly type   | Rule-based + learned patterns           |
 
 **Anomaly Type Classification:**
 
@@ -111,11 +111,11 @@ flowchart LR
 
 #### Output Layer
 
-| Component | Responsibility | Key Logic |
-|-----------|---------------|-----------|
-| Deduplicator | Suppress duplicate alerts | Time window (5min), similarity hash |
-| Enricher | Add contextual data | Device info, historical baseline |
-| Kafka Producer | Publish to alert topic | Async batched writes |
+| Component      | Responsibility            | Key Logic                           |
+| -------------- | ------------------------- | ----------------------------------- |
+| Deduplicator   | Suppress duplicate alerts | Time window (5min), similarity hash |
+| Enricher       | Add contextual data       | Device info, historical baseline    |
+| Kafka Producer | Publish to alert topic    | Async batched writes                |
 
 ---
 
@@ -206,11 +206,11 @@ gantt
 
 **Window Configuration:**
 
-| Window | Duration | Overlap | Use Case |
-|--------|----------|---------|----------|
-| 1-minute | 60s | 0% | High-frequency patterns |
-| 5-minute | 300s | 0% | Medium-term trends |
-| 15-minute | 900s | 0% | Long-term baselines |
+| Window    | Duration | Overlap | Use Case                |
+| --------- | -------- | ------- | ----------------------- |
+| 1-minute  | 60s      | 0%      | High-frequency patterns |
+| 5-minute  | 300s     | 0%      | Medium-term trends      |
+| 15-minute | 900s     | 0%      | Long-term baselines     |
 
 ### Feature Vector Structure
 
@@ -337,9 +337,9 @@ severity = (anomaly_score * 0.4) +
 
 ### MITRE ATT&CK for ICS Mapping
 
-| Anomaly Type | MITRE Technique |
-|--------------|-----------------|
-| RECONNAISSANCE | T0846 - Remote System Discovery |
-| PROTOCOL_VIOLATION | T0855 - Unauthorized Command Message |
-| VALUE_MANIPULATION | T0879 - Damage to Property |
-| TIMING_ANOMALY | T0882 - Theft of Operational Information |
+| Anomaly Type       | MITRE Technique                          |
+| ------------------ | ---------------------------------------- |
+| RECONNAISSANCE     | T0846 - Remote System Discovery          |
+| PROTOCOL_VIOLATION | T0855 - Unauthorized Command Message     |
+| VALUE_MANIPULATION | T0879 - Damage to Property               |
+| TIMING_ANOMALY     | T0882 - Theft of Operational Information |

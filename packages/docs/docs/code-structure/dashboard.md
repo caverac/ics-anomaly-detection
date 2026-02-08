@@ -4,12 +4,12 @@ The dashboard is a React application providing real-time monitoring of alerts, i
 
 ## Overview
 
-| Property | Value |
-|----------|-------|
-| Language | TypeScript |
-| Framework | React 19 |
-| Location | `packages/dashboard/` |
-| Port | 3090 |
+| Property  | Value                   |
+| --------- | ----------------------- |
+| Language  | TypeScript              |
+| Framework | React 19                |
+| Location  | `packages/dashboard/`   |
+| Port      | 3090                    |
 | API Proxy | Alerting service (8084) |
 
 ## What it does
@@ -56,26 +56,26 @@ packages/dashboard/
 
 ## Routes
 
-| Path | Component | Description |
-|------|-----------|-------------|
-| `/` | Redirect | Redirects to `/dashboard` |
+| Path         | Component | Description               |
+| ------------ | --------- | ------------------------- |
+| `/`          | Redirect  | Redirects to `/dashboard` |
 | `/dashboard` | Dashboard | Overview with key metrics |
-| `/alerts` | Alerts | Alert list with filtering |
-| `/incidents` | Incidents | Incident management |
-| `/network` | Network | Network topology view |
-| `/settings` | Settings | System status and config |
+| `/alerts`    | Alerts    | Alert list with filtering |
+| `/incidents` | Incidents | Incident management       |
+| `/network`   | Network   | Network topology view     |
+| `/settings`  | Settings  | System status and config  |
 
 ## Technology stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 19 | UI framework |
-| TypeScript | 5.x | Type safety |
-| Vite | 7 | Build tool, dev server |
-| Tailwind CSS | 4 | Utility-first styling |
-| React Router | 7 | Client-side routing |
-| Recharts | 2.x | Data visualization |
-| Lucide React | - | Icons |
+| Technology   | Version | Purpose                |
+| ------------ | ------- | ---------------------- |
+| React        | 19      | UI framework           |
+| TypeScript   | 5.x     | Type safety            |
+| Vite         | 7       | Build tool, dev server |
+| Tailwind CSS | 4       | Utility-first styling  |
+| React Router | 7       | Client-side routing    |
+| Recharts     | 2.x     | Data visualization     |
+| Lucide React | -       | Icons                  |
 
 ## API integration
 
@@ -113,19 +113,24 @@ export async function acknowledgeAlert(id: string): Promise<void> {
 ## UI components
 
 ### Layout
+
 Sidebar navigation with links to all routes. Displays current page title and system status indicator.
 
 ### Card
+
 Container component for content sections with optional title and description.
 
 ### Badge
+
 Status indicators with severity-based coloring:
+
 - **Critical**: Red
 - **High**: Orange
 - **Medium**: Yellow
 - **Low**: Blue
 
 ### Button
+
 Action buttons with variants (primary, secondary, outline) and loading states.
 
 ## Styling
@@ -152,11 +157,13 @@ import { cn } from '@/lib/utils'
 
 function Badge({ variant, children }) {
   return (
-    <span className={cn(
-      "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
-      variant === "critical" && "bg-red-500/20 text-red-400",
-      variant === "high" && "bg-orange-500/20 text-orange-400"
-    )}>
+    <span
+      className={cn(
+        'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
+        variant === 'critical' && 'bg-red-500/20 text-red-400',
+        variant === 'high' && 'bg-orange-500/20 text-orange-400'
+      )}
+    >
       {children}
     </span>
   )
@@ -165,9 +172,9 @@ function Badge({ variant, children }) {
 
 ## Configuration
 
-| Environment Variable | Description | Default |
-|---------------------|-------------|---------|
-| `VITE_API_URL` | API base URL (prod) | `/api` |
+| Environment Variable | Description         | Default |
+| -------------------- | ------------------- | ------- |
+| `VITE_API_URL`       | API base URL (prod) | `/api`  |
 
 ## How to run
 
@@ -199,11 +206,11 @@ npm run preview
 
 ## Key dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `react` | UI framework |
-| `react-router-dom` | Routing |
-| `recharts` | Charts and graphs |
-| `lucide-react` | Icons |
-| `clsx` | Conditional classes |
-| `tailwind-merge` | Merge Tailwind classes |
+| Package            | Purpose                |
+| ------------------ | ---------------------- |
+| `react`            | UI framework           |
+| `react-router-dom` | Routing                |
+| `recharts`         | Charts and graphs      |
+| `lucide-react`     | Icons                  |
+| `clsx`             | Conditional classes    |
+| `tailwind-merge`   | Merge Tailwind classes |

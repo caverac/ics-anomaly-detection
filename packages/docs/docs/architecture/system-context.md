@@ -44,24 +44,24 @@ flowchart TB
 
 ### In Scope
 
-| Component | Description |
-|-----------|-------------|
-| Traffic Capture | Passive network monitoring via SPAN/TAP |
-| Protocol Parsing | Modbus TCP, DNP3, OPC-UA, Ethernet/IP |
-| Feature Extraction | Time-series features from parsed traffic |
-| Anomaly Detection | ML-based detection (unsupervised + supervised) |
-| Alert Generation | Severity classification and deduplication |
-| Dashboard | Real-time visualization and investigation |
-| API | Programmatic access for integrations |
+| Component          | Description                                    |
+| ------------------ | ---------------------------------------------- |
+| Traffic Capture    | Passive network monitoring via SPAN/TAP        |
+| Protocol Parsing   | Modbus TCP, DNP3, OPC-UA, Ethernet/IP          |
+| Feature Extraction | Time-series features from parsed traffic       |
+| Anomaly Detection  | ML-based detection (unsupervised + supervised) |
+| Alert Generation   | Severity classification and deduplication      |
+| Dashboard          | Real-time visualization and investigation      |
+| API                | Programmatic access for integrations           |
 
 ### Out of Scope
 
-| Component | Reason |
-|-----------|--------|
-| Active response | This is a detection system, not prevention |
-| Inline deployment | Passive monitoring only (safety-critical) |
-| Asset inventory | Assumes asset data from existing CMDB |
-| Vulnerability scanning | Separate concern, different tooling |
+| Component              | Reason                                     |
+| ---------------------- | ------------------------------------------ |
+| Active response        | This is a detection system, not prevention |
+| Inline deployment      | Passive monitoring only (safety-critical)  |
+| Asset inventory        | Assumes asset data from existing CMDB      |
+| Vulnerability scanning | Separate concern, different tooling        |
 
 ## External System Interactions
 
@@ -85,6 +85,7 @@ sequenceDiagram
 **Data Format:** Raw packets (PCAP compatible)
 
 **Protocols Supported:**
+
 - Modbus TCP (port 502)
 - DNP3 (port 20000)
 - OPC-UA (port 4840)
@@ -109,6 +110,7 @@ sequenceDiagram
 **Data Format:** CEF (Common Event Format) or JSON
 
 **Alert Fields:**
+
 - `timestamp` - Event time (UTC)
 - `source_ip` - Origin device
 - `dest_ip` - Target device
@@ -123,11 +125,13 @@ sequenceDiagram
 ### SOC Analyst
 
 **Goals:**
+
 - Quickly triage ICS-related alerts
 - Investigate potential incidents
 - Escalate confirmed threats to OT team
 
 **Interactions:**
+
 - Dashboard: Real-time alert feed
 - Alert details: Context, related events
 - Search: Historical queries
@@ -135,11 +139,13 @@ sequenceDiagram
 ### ML Engineer
 
 **Goals:**
+
 - Improve model accuracy
 - Reduce false positives
 - Adapt to new threat patterns
 
 **Interactions:**
+
 - Training pipeline: Retrain models
 - Metrics: Model performance monitoring
 - Configuration: Threshold tuning
@@ -147,11 +153,13 @@ sequenceDiagram
 ### OT Operator
 
 **Goals:**
+
 - Validate alerts in operational context
 - Provide ground truth feedback
 - Identify maintenance vs. attack
 
 **Interactions:**
+
 - Alert validation: Mark true/false positives
 - Context: Add operational notes
 - Exceptions: Whitelist known behaviors

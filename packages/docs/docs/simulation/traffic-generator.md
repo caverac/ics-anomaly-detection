@@ -46,13 +46,13 @@ curl http://localhost:8083/health
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `KAFKA_BROKERS` | `localhost:9092` | Kafka bootstrap servers |
-| `KAFKA_TOPIC` | `ics.raw.packets` | Output topic |
-| `SIMULATOR_RATE` | `100` | Messages per second |
-| `SIMULATOR_PROTOCOL` | `modbus` | Protocol to simulate |
-| `METRICS_PORT` | `8083` | API/metrics port |
+| Variable             | Default           | Description             |
+| -------------------- | ----------------- | ----------------------- |
+| `KAFKA_BROKERS`      | `localhost:9092`  | Kafka bootstrap servers |
+| `KAFKA_TOPIC`        | `ics.raw.packets` | Output topic            |
+| `SIMULATOR_RATE`     | `100`             | Messages per second     |
+| `SIMULATOR_PROTOCOL` | `modbus`          | Protocol to simulate    |
+| `METRICS_PORT`       | `8083`            | API/metrics port        |
 
 ### Simulated Devices
 
@@ -78,14 +78,14 @@ The simulator includes pre-configured device profiles:
 
 Normal traffic follows weighted distribution:
 
-| Function Code | Name | Weight |
-|---------------|------|--------|
-| 0x03 | Read Holding Registers | 60% |
-| 0x04 | Read Input Registers | 20% |
-| 0x06 | Write Single Register | 10% |
-| 0x10 | Write Multiple Registers | 5% |
-| 0x01 | Read Coils | 3% |
-| 0x05 | Write Single Coil | 2% |
+| Function Code | Name                     | Weight |
+| ------------- | ------------------------ | ------ |
+| 0x03          | Read Holding Registers   | 60%    |
+| 0x04          | Read Input Registers     | 20%    |
+| 0x06          | Write Single Register    | 10%    |
+| 0x10          | Write Multiple Registers | 5%     |
+| 0x01          | Read Coils               | 3%     |
+| 0x05          | Write Single Coil        | 2%     |
 
 ### Message Structure
 
@@ -173,6 +173,7 @@ GET http://localhost:8083/metrics
 ```
 
 Exposes:
+
 - `simulator_messages_sent_total{protocol}` - Total messages by protocol
 - `simulator_errors_total` - Error count
 - `simulator_message_latency_seconds` - Generation latency
@@ -190,6 +191,7 @@ curl -X POST http://localhost:8083/attack/start \
 ```
 
 **Detection signals:**
+
 - Function code 0x2B (unusual)
 - High scan_score
 - Increased unique destinations
@@ -205,6 +207,7 @@ curl -X POST http://localhost:8083/attack/start \
 ```
 
 **Detection signals:**
+
 - Elevated write operations (FC 5, 6, 16)
 - Low read/write ratio
 - Unusual write patterns
