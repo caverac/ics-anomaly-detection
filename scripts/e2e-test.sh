@@ -123,10 +123,21 @@ test_pipeline_services() {
     docker compose -f "$COMPOSE_FILE" up -d parser feature-engine anomaly-detection alerting
 
     # Wait for services to start
-    sleep 15
+    sleep 10
+
+    # Verify containers are running (fail fast if build failed)
+    log_info "Verifying containers are running..."
+    local required_services="parser feature-engine alerting"
+    for service in $required_services; do
+        if ! docker compose -f "$COMPOSE_FILE" ps "$service" 2>/dev/null | grep -q "Up"; then
+            log_error "Service $service is not running - build may have failed"
+            docker compose -f "$COMPOSE_FILE" ps -a
+            return 1
+        fi
+    done
 
     # Check alerting API is responding
-    wait_for_service "http://localhost:8084/health" 60
+    wait_for_service "http://localhost:8084/health" 30
 
     log_info "Pipeline services are running"
 }
@@ -137,8 +148,14 @@ test_simulator_traffic() {
     # Start simulator
     docker compose -f "$COMPOSE_FILE" --profile simulator up -d simulator
 
+    # Verify simulator container is running
+    if ! docker compose -f "$COMPOSE_FILE" --profile simulator ps simulator 2>/dev/null | grep -q "Up"; then
+        log_error "Simulator is not running"
+        return 1
+    fi
+
     # Wait for simulator API
-    wait_for_service "http://localhost:8083/health" 30
+    wait_for_service "http://localhost:8083/health" 20
 
     # Configure normal traffic for training data (simulator starts automatically)
     log_info "Configuring simulator for normal traffic..."
