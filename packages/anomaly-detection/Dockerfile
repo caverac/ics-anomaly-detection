@@ -12,7 +12,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 
 # Install PyTorch CPU-only first (much smaller than full version)
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+# Pin to specific version for reproducibility
+RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+
+# Verify PyTorch installation
+RUN python -c "import torch; print(f'PyTorch {torch.__version__} installed successfully')"
 
 # Install remaining requirements
 RUN pip install --no-cache-dir -r requirements.txt

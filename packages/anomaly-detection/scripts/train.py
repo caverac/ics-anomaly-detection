@@ -132,6 +132,19 @@ def main() -> int:
     )
 
     try:
+        # Verify torch is available before starting
+        try:
+            import torch
+
+            logger.info("torch_available", version=torch.__version__)
+        except ImportError as e:
+            logger.error("torch_not_available", error=str(e))
+            logger.error(
+                "install_torch",
+                hint="pip install torch --index-url https://download.pytorch.org/whl/cpu",
+            )
+            return 1
+
         from src.config import KafkaSettings, TrainingSettings
         from src.training.pipeline import TrainingPipeline
 
