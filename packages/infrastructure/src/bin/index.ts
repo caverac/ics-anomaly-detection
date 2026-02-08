@@ -6,7 +6,7 @@ import { ModelsStack } from 'lib/models.stack'
 const envSchema = z.object({
   ENVIRONMENT: z.enum(['development', 'staging', 'production']),
   AWS_ACCOUNT: z.string().optional(),
-  AWS_REGION: z.string().default('us-east-1'),
+  AWS_REGION: z.string().default('us-east-1')
 })
 
 const env = envSchema.parse(process.env)
@@ -17,6 +17,6 @@ new ModelsStack(app, 'IcsAnomalyDetectionModelsStack', {
   deploymentEnvironment: env.ENVIRONMENT,
   env: {
     account: env.AWS_ACCOUNT || process.env.CDK_DEFAULT_ACCOUNT,
-    region: env.AWS_REGION || process.env.CDK_DEFAULT_REGION,
-  },
+    region: env.AWS_REGION || process.env.CDK_DEFAULT_REGION
+  }
 })

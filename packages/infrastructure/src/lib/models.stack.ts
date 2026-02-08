@@ -48,19 +48,19 @@ export class ModelsStack extends cdk.Stack {
         {
           id: 'delete-old-versions',
           noncurrentVersionExpiration: cdk.Duration.days(90),
-          enabled: true,
+          enabled: true
         },
         {
           id: 'transition-to-ia',
           noncurrentVersionTransitions: [
             {
               storageClass: s3.StorageClass.INFREQUENT_ACCESS,
-              transitionAfter: cdk.Duration.days(30),
-            },
+              transitionAfter: cdk.Duration.days(30)
+            }
           ],
-          enabled: true,
-        },
-      ],
+          enabled: true
+        }
+      ]
     })
 
     cdk.Tags.of(bucket).add('Project', 'ics-anomaly-detection')
@@ -82,7 +82,7 @@ export class ModelsStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         principals: [new iam.AccountRootPrincipal()],
         actions: ['s3:GetObject', 's3:ListBucket'],
-        resources: [this.bucket.bucketArn, `${this.bucket.bucketArn}/*`],
+        resources: [this.bucket.bucketArn, `${this.bucket.bucketArn}/*`]
       })
     )
   }
@@ -94,13 +94,13 @@ export class ModelsStack extends cdk.Stack {
     new ssm.StringParameter(this, 'SSMBucketName', {
       parameterName: `/ics-anomaly-detection/${this.deploymentEnvironment}/models/bucket-name`,
       stringValue: this.bucket.bucketName,
-      description: 'S3 bucket name for ML models',
+      description: 'S3 bucket name for ML models'
     })
 
     new ssm.StringParameter(this, 'SSMBucketArn', {
       parameterName: `/ics-anomaly-detection/${this.deploymentEnvironment}/models/bucket-arn`,
       stringValue: this.bucket.bucketArn,
-      description: 'S3 bucket ARN for ML models',
+      description: 'S3 bucket ARN for ML models'
     })
   }
 
@@ -111,12 +111,12 @@ export class ModelsStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ModelsBucketName', {
       value: this.bucket.bucketName,
       description: 'S3 bucket for ML model storage',
-      exportName: `ics-models-bucket-${this.deploymentEnvironment}`,
+      exportName: `ics-models-bucket-${this.deploymentEnvironment}`
     })
 
     new cdk.CfnOutput(this, 'ModelsBucketArn', {
       value: this.bucket.bucketArn,
-      description: 'S3 bucket ARN for ML model storage',
+      description: 'S3 bucket ARN for ML model storage'
     })
   }
 }

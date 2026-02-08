@@ -210,6 +210,7 @@ yarn dev:dashboard
 The anomaly-detection service requires trained ML models to run. For local development, you have two options:
 
 **Option A: Copy models from Docker (quickest)**
+
 ```bash
 # First, run the pipeline in Docker to train models
 make dev-dashboard
@@ -223,6 +224,7 @@ docker cp ics-anomaly-detection:/app/models/. ./models/
 ```
 
 **Option B: Train locally**
+
 ```bash
 cd packages/anomaly-detection
 uv sync
@@ -234,6 +236,7 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python scripts/train.py \
   --max-samples 50 \
   --epochs 5
 ```
+
 :::
 
 ### Option 3: Hybrid Mode (Mix of Docker and Local)
@@ -258,10 +261,10 @@ KAFKA_BROKERS=localhost:9094 uv run python -m src.main
 
 Key environment variables differ between Docker and local modes:
 
-| Variable | Docker Mode | Local Mode |
-|----------|-------------|------------|
-| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092` | `localhost:9094` |
-| `REDIS_URL` | `redis://redis:6379` | `redis://localhost:6379` |
+| Variable                  | Docker Mode          | Local Mode               |
+| ------------------------- | -------------------- | ------------------------ |
+| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092`         | `localhost:9094`         |
+| `REDIS_URL`               | `redis://redis:6379` | `redis://localhost:6379` |
 
 Other common variables:
 

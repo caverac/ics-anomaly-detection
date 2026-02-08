@@ -4,12 +4,12 @@ The infrastructure package is a TypeScript AWS CDK application that defines the 
 
 ## Overview
 
-| Property | Value                                       |
-| -------- | ------------------------------------------- |
-| Language | TypeScript                                  |
-| Location | `packages/infrastructure/`                  |
-| Tool     | AWS CDK v2                                  |
-| Purpose  | S3 bucket for ML model storage              |
+| Property | Value                          |
+| -------- | ------------------------------ |
+| Language | TypeScript                     |
+| Location | `packages/infrastructure/`     |
+| Tool     | AWS CDK v2                     |
+| Purpose  | S3 bucket for ML model storage |
 
 ## What it does
 
@@ -41,19 +41,20 @@ packages/infrastructure/
 
 Creates an S3 bucket for ML model storage with production-ready configuration:
 
-| Feature                 | Description                               |
-| ----------------------- | ----------------------------------------- |
-| Versioning              | Enabled for model rollback                |
-| Encryption              | S3-managed (AES-256)                      |
-| Public access           | Blocked                                   |
-| SSL                     | Enforced                                  |
-| Lifecycle: IA           | Transition non-current versions after 30d |
-| Lifecycle: Expiration   | Delete non-current versions after 90d     |
-| Removal policy          | RETAIN in production, DESTROY otherwise   |
+| Feature               | Description                               |
+| --------------------- | ----------------------------------------- |
+| Versioning            | Enabled for model rollback                |
+| Encryption            | S3-managed (AES-256)                      |
+| Public access         | Blocked                                   |
+| SSL                   | Enforced                                  |
+| Lifecycle: IA         | Transition non-current versions after 30d |
+| Lifecycle: Expiration | Delete non-current versions after 90d     |
+| Removal policy        | RETAIN in production, DESTROY otherwise   |
 
 **Bucket naming**: `ics-anomaly-detection-models-{environment}`
 
 **SSM Parameters created**:
+
 - `/ics-anomaly-detection/{env}/models/bucket-name`
 - `/ics-anomaly-detection/{env}/models/bucket-arn`
 
@@ -87,11 +88,11 @@ yarn test
 
 ### Environment variables
 
-| Variable      | Description         | Required | Values                                 |
-| ------------- | ------------------- | -------- | -------------------------------------- |
-| `ENVIRONMENT` | Deployment stage    | Yes      | `development`, `staging`, `production` |
-| `AWS_ACCOUNT` | AWS account ID      | No       | Uses CDK default if not set            |
-| `AWS_REGION`  | AWS region          | No       | Default: `us-east-1`                   |
+| Variable      | Description      | Required | Values                                 |
+| ------------- | ---------------- | -------- | -------------------------------------- |
+| `ENVIRONMENT` | Deployment stage | Yes      | `development`, `staging`, `production` |
+| `AWS_ACCOUNT` | AWS account ID   | No       | Uses CDK default if not set            |
+| `AWS_REGION`  | AWS region       | No       | Default: `us-east-1`                   |
 
 ## Integration with anomaly-detection
 
