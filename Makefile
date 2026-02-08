@@ -249,34 +249,34 @@ ci: ci-native
 # =============================================================================
 
 kafka-topics:
-	docker compose exec kafka kafka-topics.sh --bootstrap-server localhost:9092 --list
+	docker compose exec kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
 
 kafka-consume-raw:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.raw.packets \
 		--from-beginning --max-messages 10
 
 kafka-consume-parsed:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.parsed.modbus \
 		--from-beginning --max-messages 10
 
 kafka-consume-features:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.features \
 		--from-beginning --max-messages 10
 
 kafka-consume-anomalies:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.anomalies \
 		--from-beginning --max-messages 10
 
 kafka-consume-alerts:
-	docker compose exec kafka kafka-console-consumer.sh \
+	docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 		--bootstrap-server localhost:9092 \
 		--topic ics.alerts \
 		--from-beginning --max-messages 10
