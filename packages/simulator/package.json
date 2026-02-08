@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "mise exec -- python -m pytest src/ -v || echo 'No tests yet'",
-    "lint": "mise exec -- python -m ruff check src/",
-    "start": "mise exec -- python src/main.py"
+    "test": "python -m pytest src/ -v || echo 'No tests yet'",
+    "lint": "ruff check src/",
+    "lint:fix": "ruff check --fix src/",
+    "format": "ruff format src/",
+    "start": "python src/main.py"
   }
 }

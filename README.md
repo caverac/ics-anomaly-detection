@@ -35,9 +35,7 @@ flowchart LR
     end
 
     subgraph consumers["Consumers"]
-        api["API<br/>(TypeScript)"]
         dashboard["Dashboard<br/>(React)"]
-        siem["SIEM"]
     end
 
     capture --> raw
@@ -49,9 +47,7 @@ flowchart LR
     anomaly --> anomalies
     anomalies --> alerting
     alerting --> alerts_topic
-    alerts_topic --> api
     alerts_topic --> dashboard
-    alerts_topic --> siem
 ```
 
 ## Quick Start
@@ -61,7 +57,7 @@ flowchart LR
 git clone https://github.com/caverac/ics-anomaly-detection.git
 cd ics-anomaly-detection
 
-# Install dependencies
+# Install Node.js dependencies
 yarn install
 
 # Start the full pipeline with dashboard
@@ -71,7 +67,16 @@ make dev-dashboard
 open http://localhost:3090
 ```
 
-### Development Commands
+## Tooling
+
+This project uses two tools with clear responsibilities:
+
+| Tool | Responsibility |
+|------|----------------|
+| **`make`** | Docker/infrastructure operations, starting services |
+| **`yarn`** | Code quality (lint, format, typecheck), building artifacts |
+
+### Development Commands (make)
 
 ```bash
 make dev            # Start Kafka + Simulator + Parser + Feature Engine
@@ -80,7 +85,20 @@ make dev-alerting   # Add Alerting Service
 make dev-dashboard  # Add React Dashboard (full pipeline)
 make debug          # Add Kafka UI at localhost:8080
 make monitoring     # Add Prometheus + Grafana
+make status         # Show status of all services
 make clean          # Remove all containers and volumes
+```
+
+### Code Quality Commands (yarn)
+
+```bash
+yarn lint           # Lint JS/TS code
+yarn format         # Check formatting
+yarn typecheck      # TypeScript checks
+yarn test           # Run tests
+yarn build          # Build docs + dashboard
+yarn dev:docs       # Start docs dev server
+yarn dev:dashboard  # Start dashboard dev server
 ```
 
 ### Test Attack Simulation
@@ -103,7 +121,7 @@ curl http://localhost:8084/incidents | jq
 Full documentation is available at the docs site:
 
 ```bash
-make docs
+yarn dev:docs
 # Open http://localhost:3000
 ```
 
@@ -120,11 +138,11 @@ ics-anomaly-detection/
 │   ├── dashboard/         # React - Real-time monitoring dashboard
 │   ├── simulator/         # Python - ICS traffic simulation & attack scenarios
 │   └── docs/              # Docusaurus documentation site
+├── .github/workflows/     # GitHub Actions CI/CD
 ├── config/                # Grafana/Prometheus configuration
-├── notebooks/             # Jupyter notebooks for analysis
 ├── docker-compose.yml     # Local development stack
 ├── package.json           # Yarn workspaces monorepo
-└── Makefile               # Build automation
+└── Makefile               # Docker/infrastructure automation
 ```
 
 ## Services
@@ -135,7 +153,8 @@ ics-anomaly-detection/
 | Docs | 3000 | Docusaurus documentation |
 | Alerting API | 8084 | Alert/incident management |
 | Simulator API | 8083 | Traffic simulation control |
-| Parser Metrics | 8082 | Prometheus metrics |
+| Anomaly Detection | 8085 | ML inference service |
+| Feature Engine | 8082 | Feature extraction metrics |
 | Kafka | 9094 | External broker access |
 | Kafka UI | 8080 | Topic browser (debug mode) |
 | Grafana | 3001 | Dashboards (monitoring mode) |
@@ -177,6 +196,24 @@ The alerting service provides:
 - **Priority Escalation** - Automatic P4 → P1 escalation based on thresholds
 - **Incident Management** - Acknowledge and resolve incidents via API
 - **Notifications** - Console, webhook, and Slack channels
+
+## CI/CD
+
+The project includes GitHub Actions for continuous integration:
+
+```bash
+# Run JS/TS CI locally
+yarn ci
+
+# Run full CI (includes Docker builds)
+yarn ci && make ci
+```
+
+The CI pipeline runs:
+1. **Lint** - ESLint, Prettier, ruff, clippy, golangci-lint
+2. **Typecheck** - TypeScript, mypy
+3. **Test** - All unit tests
+4. **Build** - Docs, dashboard, Docker images
 
 ## License
 

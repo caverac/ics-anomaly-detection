@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "mise exec -- cargo test",
-    "test:verbose": "mise exec -- cargo test -- --nocapture",
-    "lint": "mise exec -- cargo clippy -- -D warnings",
-    "build": "mise exec -- cargo build --release"
+    "test": "cargo test",
+    "test:verbose": "cargo test -- --nocapture",
+    "lint": "cargo clippy -- -D warnings",
+    "build": "cargo build --release"
   }
 }

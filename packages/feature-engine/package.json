@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "mise exec -- python -m pytest tests/ -v",
-    "test:coverage": "mise exec -- python -m pytest tests/ -v --cov=src --cov-report=term-missing",
-    "lint": "mise exec -- ruff check src/ tests/",
-    "lint:fix": "mise exec -- ruff check --fix src/ tests/",
-    "format": "mise exec -- ruff format src/ tests/",
-    "typecheck": "mise exec -- mypy src/",
-    "start": "mise exec -- python -m src.main"
+    "test": "python -m pytest tests/ -v",
+    "test:coverage": "python -m pytest tests/ -v --cov=src --cov-report=term-missing",
+    "lint": "ruff check src/ tests/",
+    "lint:fix": "ruff check --fix src/ tests/",
+    "format": "ruff format src/ tests/",
+    "typecheck": "mypy src/",
+    "start": "python -m src.main"
   }
 }

@@ -20,8 +20,8 @@ This guide covers setting up the development environment.
 | Tool | Version | Purpose |
 |------|---------|---------|
 | Python | 3.12+ | ML services |
-| Go | 1.21+ | Packet capture service |
-| Rust | 1.75+ | Protocol parser |
+| Go | 1.23+ | Packet capture service |
+| Rust | 1.83+ | Protocol parser |
 
 ## Quick Start with Docker
 
@@ -32,7 +32,7 @@ The fastest way to get started:
 git clone https://github.com/caverac/ics-anomaly-detection.git
 cd ics-anomaly-detection
 
-# Install dependencies
+# Install Node.js dependencies
 yarn install
 
 # Start the full pipeline with dashboard
@@ -42,7 +42,39 @@ make dev-dashboard
 open http://localhost:3090
 ```
 
+## Tooling Philosophy
+
+This project uses two tools with clear responsibilities:
+
+| Tool | Responsibility |
+|------|----------------|
+| **`make`** | Docker/infrastructure operations, starting services |
+| **`yarn`** | Code quality (lint, format, typecheck), building artifacts |
+
+### When to use `make`
+
+```bash
+make dev           # Start development environment
+make dev-dashboard # Start full stack
+make build         # Build Docker images
+make kafka-topics  # Kafka utilities
+make clean         # Cleanup
+```
+
+### When to use `yarn`
+
+```bash
+yarn lint          # Lint JS/TS code
+yarn format        # Check formatting
+yarn typecheck     # TypeScript checks
+yarn test          # Run tests
+yarn build         # Build docs + dashboard
+yarn ci            # Full JS/TS CI pipeline
+```
+
 ## Development Commands
+
+### Starting Services
 
 | Command | Description |
 |---------|-------------|
@@ -52,7 +84,28 @@ open http://localhost:3090
 | `make dev-dashboard` | Add React Dashboard (full pipeline) |
 | `make debug` | Add Kafka UI at localhost:8080 |
 | `make monitoring` | Add Prometheus + Grafana |
+| `make status` | Show status of all services |
+| `make down` | Stop all services |
 | `make clean` | Remove all containers and volumes |
+
+### Code Quality
+
+| Command | Description |
+|---------|-------------|
+| `yarn lint` | Lint JS/TS with ESLint |
+| `yarn lint:fix` | Fix linting issues |
+| `yarn format` | Check Prettier formatting |
+| `yarn format:fix` | Fix formatting |
+| `yarn typecheck` | Run TypeScript checks |
+| `yarn test` | Run all tests |
+| `yarn build` | Build docs + dashboard |
+
+### Development Servers
+
+| Command | Description |
+|---------|-------------|
+| `yarn dev:docs` | Start docs dev server (localhost:3000) |
+| `yarn dev:dashboard` | Start dashboard dev server (localhost:5173) |
 
 ## Local Development Setup
 
@@ -65,7 +118,7 @@ For development with hot reloading on individual services:
 make up
 
 # Verify services are healthy
-docker compose ps
+make status
 ```
 
 ### 2. Run Services Locally
@@ -101,10 +154,8 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m src.main
 
-# Terminal 6: Dashboard
-cd packages/dashboard
-npm install
-npm run dev
+# Terminal 6: Dashboard (with hot reload)
+yarn dev:dashboard
 ```
 
 ## Configuration
@@ -147,17 +198,23 @@ export CAPTURE_INTERFACE=eth0
 ### 1. Check Services
 
 ```bash
-docker compose ps
+make status
 ```
 
 Expected output:
 ```
-NAME              STATUS
-ics-kafka         running (healthy)
-ics-redis         running (healthy)
-ics-simulator     running
-ics-parser        running
-ics-feature-engine running
+=== Container Status ===
+NAME                STATUS                  PORTS
+ics-kafka           running (healthy)       0.0.0.0:9094->9094/tcp
+ics-redis           running                 0.0.0.0:6379->6379/tcp
+ics-simulator       running                 0.0.0.0:8083->8083/tcp
+...
+
+=== Service Health ===
+  :8082 → 200
+  :8083 → 200
+  :8084 → 200
+  :8085 → 200
 ```
 
 ### 2. Check Data Flow
@@ -184,6 +241,24 @@ curl -X POST http://localhost:8083/attack/start \
 # Check alerts (if alerting is running)
 curl http://localhost:8084/alerts | jq
 ```
+
+## CI/CD
+
+The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`):
+
+```bash
+# Run locally (JS/TS only)
+yarn ci
+
+# Run full CI including Docker builds
+yarn ci && make ci
+```
+
+The CI pipeline:
+1. **Lint** - ESLint, Prettier, ruff, clippy, golangci-lint
+2. **Typecheck** - TypeScript, mypy
+3. **Test** - All unit tests
+4. **Build** - Docs, dashboard, Docker images
 
 ## Troubleshooting
 

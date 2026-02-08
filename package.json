@@ -6,13 +6,32 @@
     "packages/*"
   ],
   "scripts": {
+    "//": "=== Code Quality (JS/TS) ===",
     "lint": "eslint --max-warnings 0",
     "lint:fix": "eslint --fix",
-    "lint:all": "yarn workspaces foreach -A run lint",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "test": "yarn workspaces foreach -A run test",
-    "typecheck": "yarn workspaces foreach -A run typecheck"
+    "typecheck": "yarn workspaces foreach -Apt run typecheck",
+
+    "//2": "=== Testing ===",
+    "test": "yarn workspaces foreach -Apt run test",
+    "test:js": "yarn workspaces foreach -Apt --include '@ics/dashboard' --include '@ics-anomaly-detection/docs' run test",
+
+    "//3": "=== Building ===",
+    "build": "yarn workspaces foreach -Apt --include '@ics/dashboard' --include '@ics-anomaly-detection/docs' run build",
+    "build:docs": "yarn workspace @ics-anomaly-detection/docs build",
+    "build:dashboard": "yarn workspace @ics/dashboard build",
+
+    "//4": "=== Development ===",
+    "dev:docs": "yarn workspace @ics-anomaly-detection/docs start",
+    "dev:dashboard": "yarn workspace @ics/dashboard dev",
+
+    "//5": "=== CI Pipeline ===",
+    "ci:lint": "yarn lint && yarn format",
+    "ci:typecheck": "yarn typecheck",
+    "ci:test": "yarn test:js",
+    "ci:build": "yarn build",
+    "ci": "yarn ci:lint && yarn ci:typecheck && yarn ci:test && yarn ci:build"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.4.1",
@@ -28,6 +47,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=25.0.0"
+    "node": ">=20.0.0"
   }
 }
