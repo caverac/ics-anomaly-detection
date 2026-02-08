@@ -1,4 +1,4 @@
-.PHONY: help up down logs clean build test dev dev-full dev-alerting dev-dashboard e2e-test
+.PHONY: help up down logs clean build test dev dev-full dev-alerting dev-dashboard e2e-test all start
 
 # =============================================================================
 # Help
@@ -16,6 +16,7 @@ help:
 	@echo "  clean           Remove all containers and volumes"
 	@echo ""
 	@echo "=== Development (Docker Compose) ==="
+	@echo "  start / all     Start everything (alias for dev-dashboard)"
 	@echo "  dev             Start simulator + parser + feature-engine"
 	@echo "  dev-full        Add anomaly-detection"
 	@echo "  dev-alerting    Add alerting service"
@@ -61,7 +62,7 @@ up:
 	@echo "  Redis: localhost:6379"
 
 down:
-	docker compose down
+	docker compose --profile simulator --profile debug --profile monitoring down
 
 logs:
 	docker compose logs -f
@@ -123,6 +124,10 @@ dev-dashboard: up
 	@echo "  Alerting API: http://localhost:8084"
 	@echo "  Simulator: http://localhost:8083"
 
+# Aliases for starting everything
+all: dev-dashboard
+start: dev-dashboard
+
 debug: up
 	docker compose --profile debug up -d
 	@echo ""
@@ -181,10 +186,10 @@ ci-lint-rust:
 # Lint Python code
 ci-lint-python:
 	@echo "=== Linting Python ==="
-	docker run --rm -v $(PWD)/packages/simulator:/app -w /app python:3.12-slim sh -c "pip install -q ruff && ruff check src/"
-	docker run --rm -v $(PWD)/packages/feature-engine:/app -w /app python:3.12-slim sh -c "pip install -q ruff && ruff check src/ tests/"
-	docker run --rm -v $(PWD)/packages/anomaly-detection:/app -w /app python:3.12-slim sh -c "pip install -q ruff && ruff check src/"
-	docker run --rm -v $(PWD)/packages/alerting:/app -w /app python:3.12-slim sh -c "pip install -q ruff && ruff check src/"
+	docker run --rm -v $(PWD)/packages/simulator:/app -w /app ghcr.io/astral-sh/uv:python3.11-alpine uvx ruff check src/
+	docker run --rm -v $(PWD)/packages/feature-engine:/app -w /app ghcr.io/astral-sh/uv:python3.11-alpine uvx ruff check src/ tests/
+	docker run --rm -v $(PWD)/packages/anomaly-detection:/app -w /app ghcr.io/astral-sh/uv:python3.11-alpine uvx ruff check src/
+	docker run --rm -v $(PWD)/packages/alerting:/app -w /app ghcr.io/astral-sh/uv:python3.11-alpine uvx ruff check src/
 
 # All linting (non-JS)
 ci-lint-native:
@@ -210,8 +215,8 @@ ci-test-rust:
 # Test Python code (feature-engine has tests)
 ci-test-python:
 	@echo "=== Testing Python ==="
-	docker run --rm -v $(PWD)/packages/feature-engine:/app -w /app python:3.12-slim sh -c \
-		"pip install -q pytest numpy pydantic confluent-kafka structlog && python -m pytest tests/ -v" || true
+	docker run --rm -v $(PWD)/packages/feature-engine:/app -w /app ghcr.io/astral-sh/uv:python3.11-alpine sh -c \
+		"uv sync --dev && uv run pytest tests/ -v" || true
 
 # All testing (non-JS)
 ci-test-native:

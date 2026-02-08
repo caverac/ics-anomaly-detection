@@ -31,7 +31,7 @@ class AnomalyDetector:
 
         self.consumer = FeatureConsumer(settings.kafka)
         self.producer = AnomalyProducer(settings.kafka)
-        self.engine = InferenceEngine(settings.model)
+        self.engine = InferenceEngine(settings.model, settings.storage)
 
         self._setup_signal_handlers()
 

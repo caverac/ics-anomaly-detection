@@ -1,6 +1,7 @@
 use anyhow::Result;
 use config::{Config, Environment, File};
 use serde::Deserialize;
+use std::env;
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
@@ -35,10 +36,25 @@ impl Settings {
             // Load from config file if exists
             .add_source(File::with_name("config").required(false))
             // Override with environment variables (KAFKA_BROKERS, etc.)
-            .add_source(Environment::default().separator("_").try_parsing(true))
+            .add_source(
+                Environment::default()
+                    .separator("_")
+                    .try_parsing(true)
+                    .ignore_empty(true),
+            )
             .build()?;
 
-        Ok(config.try_deserialize()?)
+        let mut settings: Settings = config.try_deserialize()?;
+
+        // Environment variables take highest priority
+        // Support both KAFKA_BOOTSTRAP_SERVERS (common) and KAFKA_BROKERS
+        if let Ok(brokers) = env::var("KAFKA_BOOTSTRAP_SERVERS") {
+            settings.kafka.brokers = brokers;
+        } else if let Ok(brokers) = env::var("KAFKA_BROKERS") {
+            settings.kafka.brokers = brokers;
+        }
+
+        Ok(settings)
     }
 }
 

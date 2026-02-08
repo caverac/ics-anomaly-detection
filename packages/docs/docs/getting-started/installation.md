@@ -19,9 +19,30 @@ This guide covers setting up the development environment.
 
 | Tool   | Version | Purpose                |
 | ------ | ------- | ---------------------- |
-| Python | 3.12+   | ML services            |
+| Python | 3.11    | ML services            |
 | Go     | 1.23+   | Packet capture service |
 | Rust   | 1.83+   | Protocol parser        |
+
+### Using mise (Recommended)
+
+We recommend using [mise](https://mise.jdx.dev/) to manage tool versions. It ensures everyone uses the same versions.
+
+```bash
+# Install mise
+curl https://mise.run | sh
+
+# Add to your shell (bash example)
+echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+source ~/.bashrc
+
+# Install all required tools
+mise install
+
+# Verify installation
+mise current
+```
+
+This will install Node.js 22, Python 3.12, Go 1.23, and Rust 1.83 as specified in `mise.toml`.
 
 ## Quick Start with Docker
 
@@ -40,6 +61,12 @@ make dev-dashboard
 
 # Access the dashboard
 open http://localhost:3090
+
+# Access the Swagger UI for the simulator
+http://localhost:8083/docs
+
+# Access the Swagger UI for the alerting service
+http://localhost:8084/docs
 ```
 
 ## Tooling Philosophy
@@ -85,6 +112,8 @@ yarn ci            # Full JS/TS CI pipeline
 | `make debug`         | Add Kafka UI at localhost:8080                    |
 | `make monitoring`    | Add Prometheus + Grafana                          |
 | `make status`        | Show status of all services                       |
+| `make start`         | Start all services                                |
+| `make all`           | Start all services                                |
 | `make down`          | Stop all services                                 |
 | `make clean`         | Remove all containers and volumes                 |
 
@@ -107,70 +136,106 @@ yarn ci            # Full JS/TS CI pipeline
 | `yarn dev:docs`      | Start docs dev server (localhost:3000)      |
 | `yarn dev:dashboard` | Start dashboard dev server (localhost:5173) |
 
-## Local Development Setup
+## Development Modes
 
-For development with hot reloading on individual services:
+There are two ways to run services:
 
-### 1. Start Infrastructure
+### Option 1: Docker Mode (Recommended for most users)
+
+Everything runs in containers. Simple and consistent.
 
 ```bash
-# Start Kafka and Redis
+make start    # Start all services in Docker
+make down     # Stop all services
+```
+
+### Option 2: Local Mode (For debugging/development)
+
+Run services locally with hot reloading. Useful when you need to debug or make frequent changes to a specific service.
+
+:::warning Port Conflicts
+You cannot run a service in Docker and locally at the same time - they use the same ports. Stop the Docker container before running locally.
+:::
+
+#### 1. Start Infrastructure Only
+
+```bash
+# Start only Kafka and Redis in Docker
 make up
 
 # Verify services are healthy
 make status
 ```
 
-### 2. Run Services Locally
+#### 2. Run Services Locally
 
-Each service can run independently. In separate terminals:
+:::tip Using uv (Recommended)
+We use [uv](https://docs.astral.sh/uv/) for fast Python dependency management. Install via mise or `curl -LsSf https://astral.sh/uv/install.sh | sh`
+:::
+
+:::info Kafka Connection
+When running locally, use `localhost:9094` instead of `kafka:9092` (which is the Docker internal hostname).
+:::
 
 ```bash
 # Terminal 1: Simulator (generates test traffic)
 cd packages/simulator
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m src.main
+uv sync
+KAFKA_BROKERS=localhost:9094 uv run python -m src.main
 
 # Terminal 2: Parser (Rust)
 cd packages/parser
-cargo run
+KAFKA_BOOTSTRAP_SERVERS=localhost:9094 cargo run
 
 # Terminal 3: Feature Engine
 cd packages/feature-engine
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m src.main
+uv sync
+KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python -m src.main
 
 # Terminal 4: Anomaly Detection
 cd packages/anomaly-detection
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m src.main
+uv sync
+KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python -m src.main
 
 # Terminal 5: Alerting
 cd packages/alerting
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python -m src.main
+uv sync
+KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python -m src.main
 
 # Terminal 6: Dashboard (with hot reload)
 yarn dev:dashboard
+```
+
+### Option 3: Hybrid Mode (Mix of Docker and Local)
+
+Run most services in Docker, but one locally for debugging:
+
+```bash
+# Start everything in Docker
+make start
+
+# Stop only the service you want to debug
+docker stop ics-simulator
+
+# Run that service locally
+cd packages/simulator
+KAFKA_BROKERS=localhost:9094 uv run python -m src.main
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-Key environment variables (with defaults):
+Key environment variables differ between Docker and local modes:
+
+| Variable | Docker Mode | Local Mode |
+|----------|-------------|------------|
+| `KAFKA_BOOTSTRAP_SERVERS` | `kafka:9092` | `localhost:9094` |
+| `REDIS_URL` | `redis://redis:6379` | `redis://localhost:6379` |
+
+Other common variables:
 
 ```bash
-# Kafka
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-
-# Redis (for alerting service)
-REDIS_URL=redis://localhost:6379
-
 # Service ports
 SIMULATOR_PORT=8083
 ALERTING_PORT=8084
@@ -280,11 +345,12 @@ make clean && make up
 ### Python Import Errors
 
 ```bash
-# Ensure you're in a virtual environment
-source .venv/bin/activate
+# Reinstall dependencies with uv
+uv sync
 
-# Reinstall dependencies
-pip install -r requirements.txt
+# Or with pip (legacy)
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e .
 ```
 
 ### Permission Denied (Packet Capture)

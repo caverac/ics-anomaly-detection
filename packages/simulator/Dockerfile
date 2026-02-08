@@ -1,20 +1,30 @@
-FROM python:3.13-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for confluent-kafka
+# Install system dependencies for confluent-kafka and uv
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     librdkafka-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy dependency files first for layer caching
+COPY pyproject.toml .
+
 # Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv sync --no-dev --no-install-project
 
 # Copy source
 COPY src/ ./src/
 
+# Set Python path
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
 EXPOSE 8083
 
-CMD ["python", "src/main.py"]
+CMD ["uv", "run", "python", "src/main.py"]

@@ -52,7 +52,8 @@ const sidebars: SidebarsConfig = {
         'code-structure/feature-engine',
         'code-structure/anomaly-detection',
         'code-structure/alerting',
-        'code-structure/dashboard'
+        'code-structure/dashboard',
+        'code-structure/infrastructure'
       ]
     },
     {

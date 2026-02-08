@@ -279,6 +279,29 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    @app.get("/")
+    async def root() -> dict[str, Any]:
+        """List all available API endpoints."""
+        return {
+            "service": "ICS Alerting Service",
+            "version": "0.1.0",
+            "endpoints": {
+                "GET /": "This endpoint - list available endpoints",
+                "GET /health": "Health check",
+                "GET /metrics": "Prometheus metrics",
+                "GET /stats": "Service statistics",
+                "GET /alerts": "List alerts (query: limit, status, severity)",
+                "GET /alerts/{id}": "Get specific alert",
+                "POST /alerts/{id}/acknowledge": "Acknowledge an alert",
+                "POST /alerts/{id}/resolve": "Resolve an alert",
+                "GET /incidents": "List incidents (query: limit, status)",
+                "GET /incidents/{id}": "Get specific incident",
+                "POST /incidents/{id}/acknowledge": "Acknowledge an incident",
+                "POST /incidents/{id}/resolve": "Resolve an incident",
+            },
+            "docs": "/docs",
+        }
+
     def get_service(request: Request) -> AlertingService:
         """Get the service instance from app state."""
         svc = getattr(request.app.state, "service", None)

@@ -171,7 +171,16 @@ services:
       - KAFKA_GROUP_ID=ics-anomaly-detection
       - KAFKA_INPUT_TOPIC=ics.features
       - KAFKA_OUTPUT_TOPIC=ics.anomalies
-      - MODEL_MODEL_DIR=/app/models
+      # Model storage: 'local' (default) or 's3'
+      - MODEL_STORAGE_STORE_TYPE=local
+      - MODEL_STORAGE_LOCAL_MODEL_DIR=/app/models
+      # S3 storage (uncomment to use):
+      # - MODEL_STORAGE_STORE_TYPE=s3
+      # - MODEL_STORAGE_S3_BUCKET=your-bucket-name
+      # - MODEL_STORAGE_S3_PREFIX=models/latest/
+      # - MODEL_STORAGE_S3_REGION=us-east-1
+      # - AWS_ACCESS_KEY_ID=your-key
+      # - AWS_SECRET_ACCESS_KEY=your-secret
       - MODEL_HOT_RELOAD_ENABLED=true
       - ANOMALY_DETECTION_LOG_LEVEL=INFO
       - ANOMALY_DETECTION_LOG_FORMAT=json

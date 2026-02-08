@@ -2,13 +2,17 @@ import { themes as prismThemes } from 'prism-react-renderer'
 import type { Config } from '@docusaurus/types'
 import type * as Preset from '@docusaurus/preset-classic'
 
+// Use '/ics-anomaly-detection/' for GitHub Pages, '/' for local dev/serve
+// Set DOCS_BASE_URL=/ to override for local testing of production build
+const baseUrl = process.env.DOCS_BASE_URL ?? '/ics-anomaly-detection/'
+
 const config: Config = {
   title: 'ICS Anomaly Detection',
   tagline: 'Time-Series Anomaly Detection for Industrial Control Systems',
   favicon: 'img/favicon.svg',
 
   url: 'https://caverac.github.io',
-  baseUrl: '/ics-anomaly-detection/',
+  baseUrl,
 
   organizationName: 'cavera',
   projectName: 'ics-anomaly-detection',

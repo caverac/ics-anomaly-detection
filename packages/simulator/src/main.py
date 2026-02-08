@@ -17,7 +17,9 @@ from typing import Optional
 from confluent_kafka import Producer
 from fastapi import FastAPI, HTTPException
 from prometheus_client import Counter, Histogram, generate_latest
-from pydantic import BaseModel
+from contextlib import asynccontextmanager
+
+from pydantic import BaseModel, ConfigDict
 from pydantic_settings import BaseSettings
 from starlette.responses import Response
 import uvicorn
@@ -33,8 +35,7 @@ class Settings(BaseSettings):
     simulator_protocol: str = "modbus"  # modbus, dnp3, mixed
     metrics_port: int = 8083
 
-    class Config:
-        env_prefix = ""
+    model_config = ConfigDict(env_prefix="")
 
 
 settings = Settings()
@@ -263,8 +264,38 @@ class Simulator:
 # API
 # =============================================================================
 
-app = FastAPI(title="ICS Traffic Simulator")
 simulator = Simulator()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup/shutdown."""
+    simulator.connect()
+    asyncio.create_task(simulator.run())
+    yield
+    simulator.stop()
+
+
+app = FastAPI(title="ICS Traffic Simulator", lifespan=lifespan)
+
+
+@app.get("/")
+async def root():
+    """List all available API endpoints."""
+    return {
+        "service": "ICS Traffic Simulator",
+        "version": "0.1.0",
+        "endpoints": {
+            "GET /": "This endpoint - list available endpoints",
+            "GET /health": "Health check",
+            "GET /metrics": "Prometheus metrics",
+            "GET /status": "Current simulator status",
+            "POST /config": "Update simulator config (rate, protocol)",
+            "POST /attack/start": "Start attack simulation (mode: reconnaissance, write_attack, replay, dos)",
+            "POST /attack/stop": "Stop attack simulation",
+        },
+        "docs": "/docs",
+    }
 
 
 class TrafficConfig(BaseModel):
@@ -274,17 +305,6 @@ class TrafficConfig(BaseModel):
 
 class AttackConfig(BaseModel):
     mode: str  # reconnaissance, write_attack, replay, dos
-
-
-@app.on_event("startup")
-async def startup():
-    simulator.connect()
-    asyncio.create_task(simulator.run())
-
-
-@app.on_event("shutdown")
-async def shutdown():
-    simulator.stop()
 
 
 @app.get("/health")

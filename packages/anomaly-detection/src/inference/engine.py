@@ -1,12 +1,13 @@
 """Main inference engine for anomaly detection."""
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import structlog
 
-from src.config import ModelSettings
+from src.config import ModelSettings, StorageSettings
 from src.inference.classifier import AnomalyClassifier
 from src.inference.hot_reload import ModelWatcher
 from src.models.ensemble import EnsembleModel
@@ -17,6 +18,7 @@ from src.preprocessing.normalizer import FeatureNormalizer
 from src.preprocessing.sequence_builder import SequenceBuilder
 from src.schemas.anomaly import AnomalyResult, WindowKey
 from src.schemas.feature_vector import FeatureVector
+from src.storage import ModelStore, create_model_store
 
 logger = structlog.get_logger()
 
@@ -32,14 +34,30 @@ class InferenceEngine:
     - Hot model reloading
     """
 
-    def __init__(self, settings: ModelSettings) -> None:
+    def __init__(
+        self,
+        settings: ModelSettings,
+        storage_settings: StorageSettings | None = None,
+    ) -> None:
         """Initialize the inference engine.
 
         Args:
             settings: Model configuration settings.
+            storage_settings: Storage configuration. If None, uses local storage
+                with model_dir from settings.
         """
         self.settings = settings
-        self.model_dir = settings.model_dir
+
+        # Set up model storage
+        if storage_settings is not None:
+            self.store: ModelStore = create_model_store(storage_settings)
+        else:
+            # Backwards compatibility: use local storage with model_dir
+            from src.storage.local import LocalModelStore
+
+            self.store = LocalModelStore(model_dir=settings.model_dir)
+
+        self.model_dir: Path = settings.model_dir  # May be updated after download
 
         self.ensemble = EnsembleModel(
             isolation_forest=IsolationForestModel(
@@ -76,12 +94,22 @@ class InferenceEngine:
         return self._is_ready and self.ensemble.is_fitted
 
     def load_models(self) -> bool:
-        """Load all models from disk.
+        """Load all models from storage.
+
+        For S3 storage, downloads models to local cache first.
+        For local storage, loads directly from disk.
 
         Returns:
             True if models loaded successfully.
         """
         try:
+            # Download models if using remote storage
+            logger.info(
+                "loading_models",
+                store_type=self.store.store_type,
+            )
+            self.model_dir = self.store.download_models()
+
             normalizer_path = self.model_dir / "normalizer.joblib"
             if normalizer_path.exists():
                 self.normalizer.load(normalizer_path)
@@ -98,11 +126,18 @@ class InferenceEngine:
             self._is_ready = True
             logger.info(
                 "inference_engine_ready",
+                store_type=self.store.store_type,
                 models_loaded=len(self.ensemble.models),
                 n_features=self.normalizer.n_features,
             )
             return True
 
+        except FileNotFoundError as e:
+            logger.error("models_not_found", error=str(e))
+            return False
+        except ConnectionError as e:
+            logger.error("storage_connection_failed", error=str(e))
+            return False
         except Exception as e:
             logger.error("model_loading_failed", error=str(e))
             return False

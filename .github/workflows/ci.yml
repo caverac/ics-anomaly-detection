@@ -235,25 +235,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install ruff
-        run: pip install ruff
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Lint simulator
-        run: ruff check packages/simulator/src/
+        run: uvx ruff check packages/simulator/src/
 
       - name: Lint feature-engine
-        run: ruff check packages/feature-engine/src/ packages/feature-engine/tests/
+        run: uvx ruff check packages/feature-engine/src/ packages/feature-engine/tests/
 
       - name: Lint anomaly-detection
-        run: ruff check packages/anomaly-detection/src/
+        run: uvx ruff check packages/anomaly-detection/src/
 
       - name: Lint alerting
-        run: ruff check packages/alerting/src/
+        run: uvx ruff check packages/alerting/src/
 
   test-python:
     name: Test (Python)
@@ -261,20 +256,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install feature-engine dependencies
         working-directory: packages/feature-engine
-        run: |
-          pip install pytest pytest-cov
-          pip install -r requirements.txt || pip install numpy pydantic confluent-kafka structlog
+        run: uv sync --dev
 
       - name: Run feature-engine tests
         working-directory: packages/feature-engine
-        run: python -m pytest tests/ -v --cov=src --cov-report=xml
+        run: uv run pytest tests/ -v --cov=src --cov-report=xml
         continue-on-error: true # Tests may not exist yet
 
   # ===========================================================================

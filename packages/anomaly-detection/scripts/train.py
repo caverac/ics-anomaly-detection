@@ -111,6 +111,34 @@ def main() -> int:
         help="MLflow tracking server URI",
     )
 
+    # S3 upload options
+    parser.add_argument(
+        "--upload-s3",
+        action="store_true",
+        help="Upload trained models to S3 after training",
+    )
+
+    parser.add_argument(
+        "--s3-bucket",
+        type=str,
+        default=None,
+        help="S3 bucket for model upload (required if --upload-s3)",
+    )
+
+    parser.add_argument(
+        "--s3-prefix",
+        type=str,
+        default="models/latest/",
+        help="S3 key prefix for models (e.g., 'models/v1.0.0/')",
+    )
+
+    parser.add_argument(
+        "--s3-region",
+        type=str,
+        default="us-east-1",
+        help="AWS region for S3",
+    )
+
     parser.add_argument(
         "--log-level",
         type=str,
@@ -120,6 +148,10 @@ def main() -> int:
     )
 
     args = parser.parse_args()
+
+    # Validate S3 args
+    if args.upload_s3 and not args.s3_bucket:
+        parser.error("--s3-bucket is required when using --upload-s3")
 
     configure_logging(args.log_level)
     logger = structlog.get_logger()
@@ -176,6 +208,27 @@ def main() -> int:
             models=list(m.name for m in ensemble.models),
             output_dir=str(args.output_dir),
         )
+
+        # Upload to S3 if requested
+        if args.upload_s3:
+            logger.info(
+                "uploading_models_to_s3",
+                bucket=args.s3_bucket,
+                prefix=args.s3_prefix,
+            )
+            from src.storage.s3 import S3ModelStore
+
+            s3_store = S3ModelStore(
+                bucket=args.s3_bucket,
+                prefix=args.s3_prefix,
+                region=args.s3_region,
+            )
+            s3_store.upload_models(args.output_dir)
+            logger.info(
+                "models_uploaded_to_s3",
+                bucket=args.s3_bucket,
+                prefix=args.s3_prefix,
+            )
 
         return 0
 

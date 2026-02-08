@@ -1,5 +1,9 @@
+# Default config for Docker mode
+# For local development, override with:
+#   KAFKA_BOOTSTRAP_SERVERS=localhost:9094 cargo run
+
 [kafka]
-brokers = "localhost:9092"
+brokers = "kafka:9092"
 group_id = "ics-parser"
 input_topic = "ics.raw.packets"
 client_id = "ics-parser"

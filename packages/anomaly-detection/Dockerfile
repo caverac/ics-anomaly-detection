@@ -8,18 +8,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     librdkafka-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for layer caching
-COPY requirements.txt .
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy dependency files first for layer caching
+COPY pyproject.toml .
 
 # Install PyTorch CPU-only first (much smaller than full version)
-# Pin to specific version for reproducibility
-RUN pip install --no-cache-dir torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+RUN uv pip install --system torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
 
 # Verify PyTorch installation
 RUN python -c "import torch; print(f'PyTorch {torch.__version__} installed successfully')"
 
-# Install remaining requirements
-RUN pip install --no-cache-dir -r requirements.txt
+# Install remaining dependencies (including aws extras for S3 support)
+RUN uv sync --no-dev --no-install-project --extra aws
 
 # Copy application code
 COPY src/ src/

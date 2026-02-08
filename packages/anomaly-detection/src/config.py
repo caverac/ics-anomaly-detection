@@ -1,9 +1,17 @@
 """Configuration for the anomaly detection service."""
 
+from enum import Enum
 from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
+
+class StoreType(str, Enum):
+    """Model storage type."""
+
+    LOCAL = "local"
+    S3 = "s3"
 
 
 class KafkaSettings(BaseSettings):
@@ -20,10 +28,30 @@ class KafkaSettings(BaseSettings):
     model_config = {"env_prefix": "KAFKA_"}
 
 
+class StorageSettings(BaseSettings):
+    """Model storage settings for S3 or local filesystem."""
+
+    store_type: StoreType = Field(default=StoreType.LOCAL)
+
+    # Local storage settings
+    local_model_dir: Path = Field(default=Path("./models"))
+
+    # S3 storage settings
+    s3_bucket: str = Field(default="")
+    s3_prefix: str = Field(default="models/latest/")
+    s3_region: str = Field(default="us-east-1")
+
+    # Local cache for S3 models (downloaded here before loading)
+    cache_dir: Path = Field(default=Path("/tmp/ics-models"))
+
+    model_config = {"env_prefix": "MODEL_STORAGE_"}
+
+
 class ModelSettings(BaseSettings):
     """Model configuration settings."""
 
-    model_dir: Path = Field(default=Path("/app/models"))
+    # Default to ./models for local dev, /app/models in Docker
+    model_dir: Path = Field(default=Path("./models"))
 
     isolation_forest_weight: float = Field(default=0.3)
     lstm_autoencoder_weight: float = Field(default=0.5)
@@ -72,6 +100,7 @@ class Settings(BaseSettings):
 
     kafka: KafkaSettings = Field(default_factory=KafkaSettings)
     model: ModelSettings = Field(default_factory=ModelSettings)
+    storage: StorageSettings = Field(default_factory=StorageSettings)
     training: TrainingSettings = Field(default_factory=TrainingSettings)
 
     log_level: str = Field(default="INFO")
