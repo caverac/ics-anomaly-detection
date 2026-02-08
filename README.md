@@ -14,7 +14,7 @@ This project demonstrates expertise in:
 ## Architecture
 
 ```mermaid
-flowchart TB
+flowchart LR
     subgraph ingestion["Data Ingestion"]
         capture["Capture<br/>(Go)"]
         parser["Parser<br/>(Rust)"]
@@ -22,20 +22,21 @@ flowchart TB
     end
 
     subgraph ml["ML Pipeline"]
-        inference["Inference<br/>(Python)"]
+        anomaly["Anomaly Detection<br/>(Python)"]
+        alerting["Alerting<br/>(Python)"]
     end
 
     subgraph kafka["Apache Kafka"]
-        raw[("ics.raw.*")]
+        raw[("ics.raw.packets")]
         parsed[("ics.parsed.*")]
         feat[("ics.features")]
+        anomalies[("ics.anomalies")]
         alerts_topic[("ics.alerts")]
     end
 
     subgraph consumers["Consumers"]
         api["API<br/>(TypeScript)"]
         dashboard["Dashboard<br/>(React)"]
-        alerts["Alerts"]
         siem["SIEM"]
     end
 
@@ -44,11 +45,12 @@ flowchart TB
     parser --> parsed
     parsed --> features
     features --> feat
-    feat --> inference
-    inference --> alerts_topic
+    feat --> anomaly
+    anomaly --> anomalies
+    anomalies --> alerting
+    alerting --> alerts_topic
     alerts_topic --> api
     alerts_topic --> dashboard
-    alerts_topic --> alerts
     alerts_topic --> siem
 ```
 
@@ -62,8 +64,38 @@ cd ics-anomaly-detection
 # Install dependencies
 yarn install
 
-# Start the documentation site
-yarn docs:dev
+# Start the full pipeline with dashboard
+make dev-dashboard
+
+# Open the dashboard
+open http://localhost:3090
+```
+
+### Development Commands
+
+```bash
+make dev            # Start Kafka + Simulator + Parser + Feature Engine
+make dev-full       # Add Anomaly Detection
+make dev-alerting   # Add Alerting Service
+make dev-dashboard  # Add React Dashboard (full pipeline)
+make debug          # Add Kafka UI at localhost:8080
+make monitoring     # Add Prometheus + Grafana
+make clean          # Remove all containers and volumes
+```
+
+### Test Attack Simulation
+
+```bash
+# Start reconnaissance attack
+curl -X POST http://localhost:8083/attack/start \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "reconnaissance"}'
+
+# View alerts
+curl http://localhost:8084/alerts | jq
+
+# View incidents
+curl http://localhost:8084/incidents | jq
 ```
 
 ## Documentation
@@ -71,53 +103,80 @@ yarn docs:dev
 Full documentation is available at the docs site:
 
 ```bash
-yarn docs:dev
+make docs
 # Open http://localhost:3000
 ```
-
-Documentation includes:
-
-- [Architecture](/architecture/system-context) - System design and C4 diagrams
-- [ML Pipeline](/ml-pipeline/data-ingestion) - Feature engineering and models
-- [Simulation](/simulation/traffic-generator) - Attack scenario testing
-- [Operations](/operations/monitoring) - Monitoring and alerting
 
 ## Project Structure
 
 ```
 ics-anomaly-detection/
 ├── packages/
-│   ├── capture/        # Go - Packet capture from network interfaces
-│   ├── parser/         # Rust - ICS protocol parsing (Modbus, DNP3, OPC-UA)
-│   ├── feature-engine/ # Python - Time-window feature extraction
-│   ├── simulator/      # Python - ICS traffic simulation
-│   ├── docs/           # Docusaurus documentation site
-│   ├── api/            # TypeScript REST API (coming soon)
-│   └── dashboard/      # React dashboard (coming soon)
-├── config/             # Grafana/Prometheus configuration
-├── docker-compose.yml  # Local development stack
-├── package.json        # Yarn workspaces monorepo
-└── Makefile            # Build automation
+│   ├── capture/           # Go - Packet capture from network interfaces
+│   ├── parser/            # Rust - ICS protocol parsing (Modbus, DNP3, OPC-UA)
+│   ├── feature-engine/    # Python - Time-window feature extraction
+│   ├── anomaly-detection/ # Python - ML-based anomaly detection (ensemble models)
+│   ├── alerting/          # Python - Alert correlation, deduplication, notifications
+│   ├── dashboard/         # React - Real-time monitoring dashboard
+│   ├── simulator/         # Python - ICS traffic simulation & attack scenarios
+│   └── docs/              # Docusaurus documentation site
+├── config/                # Grafana/Prometheus configuration
+├── notebooks/             # Jupyter notebooks for analysis
+├── docker-compose.yml     # Local development stack
+├── package.json           # Yarn workspaces monorepo
+└── Makefile               # Build automation
 ```
+
+## Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| Dashboard | 3090 | React monitoring UI |
+| Docs | 3000 | Docusaurus documentation |
+| Alerting API | 8084 | Alert/incident management |
+| Simulator API | 8083 | Traffic simulation control |
+| Parser Metrics | 8082 | Prometheus metrics |
+| Kafka | 9094 | External broker access |
+| Kafka UI | 8080 | Topic browser (debug mode) |
+| Grafana | 3001 | Dashboards (monitoring mode) |
+| Prometheus | 9090 | Metrics (monitoring mode) |
+| Redis | 6379 | Incident state storage |
 
 ## Technology Stack
 
 | Layer | Technology |
 |-------|------------|
-| Language | TypeScript, Python, Go, Rust |
+| Languages | Python, Go, Rust, TypeScript |
 | ML Framework | PyTorch, scikit-learn |
-| Stream Processing | Apache Kafka |
-| Storage | TimescaleDB, PostgreSQL, Redis |
+| Stream Processing | Apache Kafka (KRaft mode) |
+| Storage | Redis |
+| Frontend | React 19, Vite 7, Tailwind CSS 4 |
 | Monitoring | Prometheus, Grafana |
-| Containerization | Docker, Kubernetes |
+| Containerization | Docker |
 
-## Skills Demonstrated
+## ML Pipeline
 
-- **Machine Learning**: Anomaly detection (Isolation Forest, LSTM-AE, One-Class SVM)
-- **Time Series Analysis**: Feature engineering from ICS traffic patterns
-- **Production Systems**: Model serving, monitoring, versioning
-- **ICS/OT Security**: Protocol parsing (Modbus, DNP3, OPC-UA), threat detection
-- **System Design**: Microservices, event streaming, observability
+The anomaly detection pipeline uses an ensemble of models:
+
+- **Isolation Forest** - Unsupervised outlier detection
+- **LSTM Autoencoder** - Sequence-based anomaly detection
+- **One-Class SVM** - Boundary-based classification
+
+Features are extracted from 60-second time windows including:
+- Inter-arrival time statistics (mean, std, min, max)
+- Function code distribution and entropy
+- Address range and access patterns
+- Request/response ratios
+
+## Alerting System
+
+The alerting service provides:
+
+- **Correlation Engine** - Groups anomalies by source/destination/protocol
+- **Deduplication** - Suppresses duplicate alerts within time windows
+- **Priority Escalation** - Automatic P4 → P1 escalation based on thresholds
+- **Incident Management** - Acknowledge and resolve incidents via API
+- **Notifications** - Console, webhook, and Slack channels
 
 ## License
 

@@ -220,6 +220,24 @@ services:
     restart: unless-stopped
 
   # =============================================================================
+  # Dashboard
+  # =============================================================================
+
+  dashboard:
+    build:
+      context: ./packages/dashboard
+      dockerfile: Dockerfile
+    container_name: ics-dashboard
+    depends_on:
+      alerting:
+        condition: service_started
+    ports:
+      - "3090:80"
+    networks:
+      - ics-network
+    restart: unless-stopped
+
+  # =============================================================================
   # Traffic Simulator (for testing)
   # =============================================================================
 

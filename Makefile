@@ -1,4 +1,4 @@
-.PHONY: help up down logs clean build test dev dev-full dev-alerting
+.PHONY: help up down logs clean build test dev dev-full dev-alerting dev-dashboard
 
 # Default target
 help:
@@ -14,6 +14,7 @@ help:
 	@echo "  make dev         - Start infra + simulator + parser + feature-engine"
 	@echo "  make dev-full    - Start full pipeline with anomaly detection"
 	@echo "  make dev-alerting - Start full pipeline with alerting service"
+	@echo "  make dev-dashboard - Start full pipeline with dashboard UI"
 	@echo "  make simulator   - Start with simulator only"
 	@echo "  make monitoring  - Start with Prometheus + Grafana"
 	@echo "  make debug       - Start with Kafka UI for debugging"
@@ -23,6 +24,7 @@ help:
 	@echo "  make build-capture - Build capture service"
 	@echo "  make build-parser  - Build parser service"
 	@echo "  make build-alerting - Build alerting service"
+	@echo "  make build-dashboard - Build dashboard"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make docs        - Start documentation site"
@@ -92,6 +94,17 @@ dev-alerting: up
 	@echo "View alerts:"
 	@echo "  curl http://localhost:8084/alerts"
 
+dev-dashboard: up
+	docker compose --profile simulator up -d
+	docker compose up -d parser feature-engine anomaly-detection alerting dashboard
+	@echo ""
+	@echo "Full pipeline with dashboard ready!"
+	@echo "  Dashboard: http://localhost:3090"
+	@echo "  Simulator API: http://localhost:8083"
+	@echo "  Alerting API: http://localhost:8084"
+	@echo ""
+	@echo "Pipeline: Simulator -> Parser -> Feature Engine -> Anomaly Detection -> Alerting -> Dashboard"
+
 simulator: up
 	docker compose --profile simulator up -d
 	@echo ""
@@ -136,6 +149,9 @@ build-anomaly-detection:
 
 build-alerting:
 	docker compose build alerting
+
+build-dashboard:
+	docker compose build dashboard
 
 # =============================================================================
 # Documentation
