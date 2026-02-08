@@ -140,15 +140,15 @@ test_simulator_traffic() {
     # Wait for simulator API
     wait_for_service "http://localhost:8083/health" 30
 
-    # Generate normal traffic for training data
-    log_info "Generating normal traffic for training..."
-    curl -sf -X POST "http://localhost:8083/traffic/start" \
+    # Configure normal traffic for training data (simulator starts automatically)
+    log_info "Configuring simulator for normal traffic..."
+    curl -sf -X POST "http://localhost:8083/config" \
         -H "Content-Type: application/json" \
-        -d '{"rate": 100, "protocol": "modbus", "duration": 60}' || true
+        -d '{"rate": 100, "protocol": "modbus"}' || true
 
     # Let traffic flow to build up training data
     log_info "Waiting for training data to accumulate..."
-    sleep 45
+    sleep 60
 
     log_info "Normal traffic generation complete"
 }
@@ -187,7 +187,7 @@ test_anomaly_detection() {
     log_info "Generating attack traffic..."
     curl -sf -X POST "http://localhost:8083/attack/start" \
         -H "Content-Type: application/json" \
-        -d '{"mode": "reconnaissance", "intensity": "high"}' || true
+        -d '{"mode": "reconnaissance"}' || true
 
     # Let attack traffic flow
     sleep 30

@@ -1,5 +1,7 @@
 # ICS Network Anomaly Detection Engine
 
+[![Docs](https://img.shields.io/badge/📖_Documentation-GitHub_Pages-2ea44f?style=for-the-badge)](https://caverac.github.io/ics-anomaly-detection/)
+
 A machine learning system for detecting anomalies in Industrial Control System (ICS) network traffic.
 
 ## Overview

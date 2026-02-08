@@ -21,7 +21,7 @@ RUN uv pip install --system torch==2.5.1 --index-url https://download.pytorch.or
 RUN python -c "import torch; print(f'PyTorch {torch.__version__} installed successfully')"
 
 # Install remaining dependencies (including aws extras for S3 support)
-RUN uv sync --no-dev --no-install-project --extra aws
+RUN uv pip install --system .[aws]
 
 # Copy application code
 COPY src/ src/
