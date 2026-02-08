@@ -7,8 +7,8 @@ const config: Config = {
   tagline: 'Time-Series Anomaly Detection for Industrial Control Systems',
   favicon: 'img/favicon.svg',
 
-  url: 'https://ics-anomaly-detection.dev',
-  baseUrl: '/',
+  url: 'https://caverac.github.io',
+  baseUrl: '/ics-anomaly-detection/',
 
   organizationName: 'cavera',
   projectName: 'ics-anomaly-detection',
