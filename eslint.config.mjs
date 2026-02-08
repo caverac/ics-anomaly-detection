@@ -16,6 +16,18 @@ export default [
       '**/.venv/**'
     ]
   },
+  // JavaScript files (Node.js config files)
+  {
+    files: ['**/*.js', '**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.node
+      }
+    }
+  },
+  // TypeScript files
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {

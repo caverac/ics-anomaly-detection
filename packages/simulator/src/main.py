@@ -11,22 +11,21 @@ import json
 import logging
 import random
 import struct
-from datetime import datetime, timezone
-from typing import Optional
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
+import uvicorn
 from confluent_kafka import Producer
 from fastapi import FastAPI, HTTPException
 from prometheus_client import Counter, Histogram, generate_latest
-from contextlib import asynccontextmanager
-
 from pydantic import BaseModel, ConfigDict
 from pydantic_settings import BaseSettings
 from starlette.responses import Response
-import uvicorn
 
 # =============================================================================
 # Configuration
 # =============================================================================
+
 
 class Settings(BaseSettings):
     kafka_brokers: str = "localhost:9092"
@@ -70,6 +69,7 @@ HMI_DEVICES = [
 # Modbus Traffic Generator
 # =============================================================================
 
+
 class ModbusGenerator:
     """Generate realistic Modbus TCP traffic."""
 
@@ -86,7 +86,7 @@ class ModbusGenerator:
         self.transaction_id = 0
         self.register_values = {}  # Simulated register state
 
-    def generate_message(self, attack_mode: Optional[str] = None) -> dict:
+    def generate_message(self, attack_mode: str | None = None) -> dict:
         """Generate a Modbus TCP message."""
         self.transaction_id = (self.transaction_id + 1) % 65536
 
@@ -114,7 +114,7 @@ class ModbusGenerator:
         full_payload = mbap + payload
 
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "src_ip": hmi["ip"],
             "dst_ip": plc["ip"],
             "src_port": random.randint(49152, 65535),
@@ -130,12 +130,7 @@ class ModbusGenerator:
         registers = list(plc["registers"])
         max_addr = len(registers) - 1
 
-        if function_code == 0x03:  # Read Holding Registers
-            address = random.randint(0, max(0, max_addr - 10))
-            quantity = random.randint(1, 10)
-            return struct.pack(">BHH", function_code, address, quantity)
-
-        elif function_code == 0x04:  # Read Input Registers
+        if function_code in (0x03, 0x04):  # Read Holding/Input Registers
             address = random.randint(0, max(0, max_addr - 10))
             quantity = random.randint(1, 10)
             return struct.pack(">BHH", function_code, address, quantity)
@@ -176,13 +171,14 @@ class ModbusGenerator:
 # Simulator Engine
 # =============================================================================
 
+
 class Simulator:
     def __init__(self):
-        self.producer: Optional[Producer] = None
+        self.producer: Producer | None = None
         self.running = False
         self.rate = settings.simulator_rate
         self.protocol = settings.simulator_protocol
-        self.attack_mode: Optional[str] = None
+        self.attack_mode: str | None = None
         self.modbus_gen = ModbusGenerator()
 
     def connect(self):
@@ -299,8 +295,8 @@ async def root():
 
 
 class TrafficConfig(BaseModel):
-    rate: Optional[int] = None
-    protocol: Optional[str] = None
+    rate: int | None = None
+    protocol: str | None = None
 
 
 class AttackConfig(BaseModel):

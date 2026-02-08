@@ -22,109 +22,7 @@ concurrency:
 
 jobs:
   # ===========================================================================
-  # JS/TS Jobs (fast, run first)
-  # ===========================================================================
-
-  lint-js:
-    name: Lint (JS/TS)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Run ESLint
-        run: yarn lint
-
-      - name: Check formatting
-        run: yarn format
-
-  typecheck:
-    name: Typecheck (JS/TS)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Run TypeScript checks
-        run: yarn typecheck
-
-  test-js:
-    name: Test (JS/TS)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Run tests
-        run: yarn test:js
-
-  build-js:
-    name: Build (JS/TS)
-    runs-on: ubuntu-latest
-    needs: [lint-js, typecheck, test-js]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Build docs and dashboard
-        run: yarn build
-
-      - name: Upload docs artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs-build
-          path: packages/docs/build/
-          retention-days: 7
-
-      - name: Upload dashboard artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dashboard-build
-          path: packages/dashboard/dist/
-          retention-days: 7
-
-  # ===========================================================================
-  # Go Jobs
+  # Go Jobs (run in parallel)
   # ===========================================================================
 
   lint-go:
@@ -174,7 +72,7 @@ jobs:
           path: packages/capture/coverage.out
 
   # ===========================================================================
-  # Rust Jobs
+  # Rust Jobs (run in parallel)
   # ===========================================================================
 
   lint-rust:
@@ -226,7 +124,7 @@ jobs:
         run: cargo test --verbose
 
   # ===========================================================================
-  # Python Jobs
+  # Python Jobs (run in parallel)
   # ===========================================================================
 
   lint-python:
@@ -268,13 +166,132 @@ jobs:
         run: uv run pytest tests/ -v --cov=src --cov-report=xml
 
   # ===========================================================================
+  # JS/TS Jobs (run in parallel)
+  # ===========================================================================
+
+  lint-js:
+    name: Lint (JS/TS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run ESLint
+        run: yarn lint
+
+      - name: Check formatting
+        run: yarn format
+
+  typecheck-js:
+    name: Typecheck (JS/TS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run TypeScript checks
+        run: yarn typecheck
+
+  test-js:
+    name: Test (JS/TS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run tests
+        run: yarn test:js
+
+  # ===========================================================================
+  # Build (requires all lint/test jobs to pass)
+  # ===========================================================================
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs:
+      # Go
+      - lint-go
+      - test-go
+      # Rust
+      - lint-rust
+      - test-rust
+      # Python
+      - lint-python
+      - test-python
+      # JS/TS
+      - lint-js
+      - typecheck-js
+      - test-js
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build docs and dashboard
+        run: yarn build
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-build
+          path: packages/docs/build/
+          retention-days: 7
+
+      - name: Upload dashboard artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-build
+          path: packages/dashboard/dist/
+          retention-days: 7
+
+  # ===========================================================================
   # Docker Build & E2E Tests
   # ===========================================================================
 
   build-and-e2e:
     name: Build Docker & E2E Tests
     runs-on: ubuntu-latest
-    needs: [build-js, test-go, test-rust, lint-python, test-python]
+    needs: [build]
     steps:
       - uses: actions/checkout@v4
 

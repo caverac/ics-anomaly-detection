@@ -46,11 +46,11 @@ class S3ModelStore(ModelStore):
         if self._client is None:
             try:
                 import boto3
-            except ImportError:
+            except ImportError as err:
                 raise ImportError(
                     "boto3 is required for S3 storage. "
                     "Install with: pip install 'ics-anomaly-detection[aws]'"
-                )
+                ) from err
             self._client = boto3.client("s3", region_name=self._region)
         return self._client
 
@@ -110,11 +110,11 @@ class S3ModelStore(ModelStore):
 
             return self._cache_dir
 
-        except client.exceptions.NoSuchBucket:
-            raise ConnectionError(f"S3 bucket not found: {self._bucket}")
+        except client.exceptions.NoSuchBucket as err:
+            raise ConnectionError(f"S3 bucket not found: {self._bucket}") from err
         except Exception as e:
             if "NoCredentialProviders" in str(e) or "InvalidAccessKeyId" in str(e):
-                raise ConnectionError(f"AWS credentials error: {e}")
+                raise ConnectionError(f"AWS credentials error: {e}") from e
             raise
 
     def upload_models(self, local_dir: Path) -> None:
