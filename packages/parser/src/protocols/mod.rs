@@ -1,5 +1,5 @@
-mod modbus;
 mod dnp3;
+mod modbus;
 mod opcua;
 
 use anyhow::Result;
@@ -7,8 +7,8 @@ use serde::Serialize;
 
 use crate::kafka::RawPacketMessage;
 
-pub use modbus::ModbusMessage;
 pub use dnp3::Dnp3Message;
+pub use modbus::ModbusMessage;
 pub use opcua::OpcuaMessage;
 
 /// Unified parser for ICS protocols
@@ -19,11 +19,7 @@ impl Parser {
         Self
     }
 
-    pub fn parse_modbus(
-        &self,
-        payload: &[u8],
-        raw: &RawPacketMessage,
-    ) -> Result<ParsedMessage> {
+    pub fn parse_modbus(&self, payload: &[u8], raw: &RawPacketMessage) -> Result<ParsedMessage> {
         let modbus = modbus::parse(payload)?;
         Ok(ParsedMessage::Modbus(ModbusParsedMessage {
             timestamp: raw.timestamp.clone(),
@@ -35,11 +31,7 @@ impl Parser {
         }))
     }
 
-    pub fn parse_dnp3(
-        &self,
-        payload: &[u8],
-        raw: &RawPacketMessage,
-    ) -> Result<ParsedMessage> {
+    pub fn parse_dnp3(&self, payload: &[u8], raw: &RawPacketMessage) -> Result<ParsedMessage> {
         let dnp3 = dnp3::parse(payload)?;
         Ok(ParsedMessage::Dnp3(Dnp3ParsedMessage {
             timestamp: raw.timestamp.clone(),
@@ -51,11 +43,7 @@ impl Parser {
         }))
     }
 
-    pub fn parse_opcua(
-        &self,
-        payload: &[u8],
-        raw: &RawPacketMessage,
-    ) -> Result<ParsedMessage> {
+    pub fn parse_opcua(&self, payload: &[u8], raw: &RawPacketMessage) -> Result<ParsedMessage> {
         let opcua = opcua::parse(payload)?;
         Ok(ParsedMessage::Opcua(OpcuaParsedMessage {
             timestamp: raw.timestamp.clone(),
@@ -143,8 +131,8 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x03,       // Function code
+            0x01, // Unit ID
+            0x03, // Function code
             0x00, 0x00, // Start address
             0x00, 0x0A, // Quantity (10)
         ];
@@ -185,8 +173,8 @@ mod tests {
         // DNP3 frame
         let payload = [
             0x64, 0x05, // Start bytes
-            0x05,       // Length
-            0xC0,       // Control
+            0x05, // Length
+            0xC0, // Control
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
@@ -224,13 +212,8 @@ mod tests {
 
         // OPC-UA Hello
         let payload = [
-            b'H', b'E', b'L', b'F',
-            0x1C, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0x01, 0x00,
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,
+            b'H', b'E', b'L', b'F', 0x1C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         ];
 
         let result = parser.parse_opcua(&payload, &raw);
@@ -262,8 +245,7 @@ mod tests {
         let raw = create_test_raw_message();
 
         let payload = [
-            0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03,
-            0x00, 0x00, 0x00, 0x0A,
+            0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x01, 0x03, 0x00, 0x00, 0x00, 0x0A,
         ];
 
         let result = parser.parse_modbus(&payload, &raw).unwrap();

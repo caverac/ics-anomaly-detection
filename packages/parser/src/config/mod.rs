@@ -35,11 +35,7 @@ impl Settings {
             // Load from config file if exists
             .add_source(File::with_name("config").required(false))
             // Override with environment variables (KAFKA_BROKERS, etc.)
-            .add_source(
-                Environment::default()
-                    .separator("_")
-                    .try_parsing(true),
-            )
+            .add_source(Environment::default().separator("_").try_parsing(true))
             .build()?;
 
         Ok(config.try_deserialize()?)

@@ -47,12 +47,7 @@ async fn main() -> Result<()> {
 
     // Start processing
     let shutdown_rx = shutdown_tx.subscribe();
-    let processing_handle = tokio::spawn(process_messages(
-        consumer,
-        producer,
-        parser,
-        shutdown_rx,
-    ));
+    let processing_handle = tokio::spawn(process_messages(consumer, producer, parser, shutdown_rx));
 
     // Wait for shutdown signal
     shutdown_signal().await;
@@ -62,11 +57,7 @@ async fn main() -> Result<()> {
     let _ = shutdown_tx.send(());
 
     // Wait for processing to complete
-    let _ = tokio::time::timeout(
-        std::time::Duration::from_secs(10),
-        processing_handle,
-    )
-    .await;
+    let _ = tokio::time::timeout(std::time::Duration::from_secs(10), processing_handle).await;
 
     metrics_handle.abort();
 

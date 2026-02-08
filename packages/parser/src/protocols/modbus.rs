@@ -43,8 +43,8 @@ pub fn parse(input: &[u8]) -> Result<ModbusMessage> {
         return Err(anyhow!("Modbus message too short: {} bytes", input.len()));
     }
 
-    let (remaining, mbap) = parse_mbap_header(input)
-        .map_err(|e| anyhow!("Failed to parse MBAP header: {:?}", e))?;
+    let (remaining, mbap) =
+        parse_mbap_header(input).map_err(|e| anyhow!("Failed to parse MBAP header: {:?}", e))?;
 
     let (remaining, function_code) = be_u8::<_, nom::error::Error<&[u8]>>(remaining)
         .map_err(|e| anyhow!("Failed to parse function code: {:?}", e))?;
@@ -241,8 +241,8 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x03,       // Function code
+            0x01, // Unit ID
+            0x03, // Function code
             0x00, 0x00, // Start address
             0x00, 0x0A, // Quantity
         ];
@@ -261,9 +261,9 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x0B, // Length
-            0x01,       // Unit ID
-            0x03,       // Function code
-            0x08,       // Byte count
+            0x01, // Unit ID
+            0x03, // Function code
+            0x08, // Byte count
             0x00, 0x01, // Value 1
             0x00, 0x02, // Value 2
             0x00, 0x03, // Value 3
@@ -283,9 +283,9 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x03, // Length
-            0x01,       // Unit ID
-            0x83,       // Function code with exception flag
-            0x02,       // Exception code (Illegal Data Address)
+            0x01, // Unit ID
+            0x83, // Function code with exception flag
+            0x02, // Exception code (Illegal Data Address)
         ];
 
         let msg = parse(&data).unwrap();
@@ -301,8 +301,8 @@ mod tests {
             0x00, 0x02, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x01,       // Function code (Read Coils)
+            0x01, // Unit ID
+            0x01, // Function code (Read Coils)
             0x00, 0x00, // Start address
             0x00, 0x08, // Quantity
         ];
@@ -321,8 +321,8 @@ mod tests {
             0x00, 0x03, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x02,       // Function code (Read Discrete Inputs)
+            0x01, // Unit ID
+            0x02, // Function code (Read Discrete Inputs)
             0x00, 0x10, // Start address (16)
             0x00, 0x20, // Quantity (32)
         ];
@@ -341,8 +341,8 @@ mod tests {
             0x00, 0x04, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x04,       // Function code (Read Input Registers)
+            0x01, // Unit ID
+            0x04, // Function code (Read Input Registers)
             0x00, 0x08, // Start address
             0x00, 0x01, // Quantity
         ];
@@ -359,8 +359,8 @@ mod tests {
             0x00, 0x05, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x05,       // Function code (Write Single Coil)
+            0x01, // Unit ID
+            0x05, // Function code (Write Single Coil)
             0x00, 0x0A, // Address (10)
             0xFF, 0x00, // Value (ON)
         ];
@@ -379,8 +379,8 @@ mod tests {
             0x00, 0x06, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x06, // Length
-            0x01,       // Unit ID
-            0x06,       // Function code (Write Single Register)
+            0x01, // Unit ID
+            0x06, // Function code (Write Single Register)
             0x00, 0x01, // Address
             0x00, 0x03, // Value (3)
         ];
@@ -399,11 +399,11 @@ mod tests {
             0x00, 0x07, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x08, // Length
-            0x01,       // Unit ID
-            0x0F,       // Function code (Write Multiple Coils)
+            0x01, // Unit ID
+            0x0F, // Function code (Write Multiple Coils)
             0x00, 0x13, // Start address (19)
             0x00, 0x0A, // Quantity (10)
-            0x02,       // Byte count
+            0x02, // Byte count
             0xCD, 0x01, // Values
         ];
 
@@ -422,11 +422,11 @@ mod tests {
             0x00, 0x08, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x0B, // Length
-            0x01,       // Unit ID
-            0x10,       // Function code (Write Multiple Registers)
+            0x01, // Unit ID
+            0x10, // Function code (Write Multiple Registers)
             0x00, 0x01, // Start address
             0x00, 0x02, // Quantity
-            0x04,       // Byte count
+            0x04, // Byte count
             0x00, 0x0A, // Value 1 (10)
             0x01, 0x02, // Value 2 (258)
         ];
@@ -446,8 +446,8 @@ mod tests {
             0x00, 0x01, // Transaction ID (1)
             0x00, 0x00, // Protocol ID (0)
             0x00, 0x06, // Length (6)
-            0x01,       // Unit ID (1)
-            0x03,       // Function code
+            0x01, // Unit ID (1)
+            0x03, // Function code
             0x00, 0x00, // Extra data
             0x00, 0x0A,
         ];
@@ -472,8 +472,8 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x05, // Length
-            0x01,       // Unit ID
-            0x50,       // Unknown function code
+            0x01, // Unit ID
+            0x50, // Unknown function code
             0x01, 0x02, // Some data
             0x03, 0x04,
         ];
@@ -491,11 +491,11 @@ mod tests {
             0x00, 0x09, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x05, // Length
-            0x01,       // Unit ID
-            0x2B,       // Function code (Encapsulated Interface Transport)
-            0x0E,       // MEI type
-            0x01,       // Read device ID
-            0x00,       // Object ID
+            0x01, // Unit ID
+            0x2B, // Function code (Encapsulated Interface Transport)
+            0x0E, // MEI type
+            0x01, // Read device ID
+            0x00, // Object ID
         ];
 
         let msg = parse(&data).unwrap();
@@ -534,8 +534,8 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x02, // Length
-            0x01,       // Unit ID
-            0x81,       // Function code with exception flag (FC 01)
+            0x01, // Unit ID
+            0x81, // Function code with exception flag (FC 01)
         ];
 
         let msg = parse(&data).unwrap();
@@ -550,8 +550,8 @@ mod tests {
             0x00, 0x01, // Transaction ID
             0x00, 0x00, // Protocol ID
             0x00, 0x02, // Length
-            0x01,       // Unit ID
-            0x03,       // Function code (Read Holding Registers)
+            0x01, // Unit ID
+            0x03, // Function code (Read Holding Registers)
         ];
 
         let msg = parse(&data).unwrap();

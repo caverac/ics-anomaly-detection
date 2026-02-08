@@ -12,20 +12,16 @@
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "typecheck": "yarn workspaces foreach -Apt run typecheck",
-
     "//2": "=== Testing ===",
     "test": "yarn workspaces foreach -Apt run test",
     "test:js": "yarn workspaces foreach -Apt --include '@ics/dashboard' --include '@ics-anomaly-detection/docs' run test",
-
     "//3": "=== Building ===",
     "build": "yarn workspaces foreach -Apt --include '@ics/dashboard' --include '@ics-anomaly-detection/docs' run build",
     "build:docs": "yarn workspace @ics-anomaly-detection/docs build",
     "build:dashboard": "yarn workspace @ics/dashboard build",
-
     "//4": "=== Development ===",
     "dev:docs": "yarn workspace @ics-anomaly-detection/docs start",
     "dev:dashboard": "yarn workspace @ics/dashboard dev",
-
     "//5": "=== CI Pipeline ===",
     "ci:lint": "yarn lint && yarn format",
     "ci:typecheck": "yarn typecheck",

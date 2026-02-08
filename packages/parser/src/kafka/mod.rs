@@ -58,12 +58,10 @@ impl Consumer {
             .await
             .context("Failed to receive message")?;
 
-        let payload = message
-            .payload()
-            .context("Empty message payload")?;
+        let payload = message.payload().context("Empty message payload")?;
 
-        let msg: RawPacketMessage = serde_json::from_slice(payload)
-            .context("Failed to deserialize message")?;
+        let msg: RawPacketMessage =
+            serde_json::from_slice(payload).context("Failed to deserialize message")?;
 
         debug!(
             src = %msg.src_ip,
@@ -101,9 +99,7 @@ impl Producer {
     pub async fn send<T: Serialize>(&self, topic: &str, message: &T) -> Result<()> {
         let payload = serde_json::to_string(message)?;
 
-        let record = FutureRecord::to(topic)
-            .payload(&payload)
-            .key("");
+        let record = FutureRecord::to(topic).payload(&payload).key("");
 
         self.producer
             .send(record, Duration::from_secs(5))
@@ -124,9 +120,7 @@ impl Producer {
     ) -> Result<()> {
         let payload = serde_json::to_string(message)?;
 
-        let record = FutureRecord::to(topic)
-            .payload(&payload)
-            .key(key);
+        let record = FutureRecord::to(topic).payload(&payload).key(key);
 
         self.producer
             .send(record, Duration::from_secs(5))

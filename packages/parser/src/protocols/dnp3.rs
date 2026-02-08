@@ -350,8 +350,8 @@ mod tests {
         // Simple DNP3 frame with header only
         let data = [
             0x64, 0x05, // Start bytes (0x0564 in little endian)
-            0x05,       // Length
-            0xC0,       // Control (master, unconfirmed user data)
+            0x05, // Length
+            0xC0, // Control (master, unconfirmed user data)
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
@@ -369,8 +369,8 @@ mod tests {
         // DNP3 frame from outstation (slave)
         let data = [
             0x64, 0x05, // Start bytes
-            0x05,       // Length
-            0x44,       // Control (outstation, unconfirmed user data)
+            0x05, // Length
+            0x44, // Control (outstation, unconfirmed user data)
             0x03, 0x00, // Destination
             0x04, 0x00, // Source
             0x00, 0x00, // CRC
@@ -395,8 +395,8 @@ mod tests {
     fn test_parse_dnp3_invalid_start_bytes() {
         let data = [
             0x00, 0x00, // Invalid start bytes
-            0x05,       // Length
-            0xC0,       // Control
+            0x05, // Length
+            0xC0, // Control
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
@@ -411,8 +411,8 @@ mod tests {
         // Test frame count bit and frame count valid flags
         let data = [
             0x64, 0x05, // Start bytes
-            0x05,       // Length
-            0xF3,       // Control: master=1, fcb=1, fcv=1, function=3 (confirmed user data)
+            0x05, // Length
+            0xF3, // Control: master=1, fcb=1, fcv=1, function=3 (confirmed user data)
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
@@ -430,11 +430,9 @@ mod tests {
     fn test_parse_dnp3_reset_link_states() {
         let data = [
             0x64, 0x05, // Start bytes
-            0x05,       // Length
-            0xC0,       // Control: master=1, function=0 (reset link states)
-            0x01, 0x00,
-            0x02, 0x00,
-            0x00, 0x00,
+            0x05, // Length
+            0xC0, // Control: master=1, function=0 (reset link states)
+            0x01, 0x00, 0x02, 0x00, 0x00, 0x00,
         ];
 
         let msg = parse(&data).unwrap();
@@ -447,16 +445,16 @@ mod tests {
         // DNP3 frame with transport and application layer
         let data = [
             0x64, 0x05, // Start bytes
-            0x0A,       // Length (includes transport + app)
-            0xC3,       // Control: master, confirmed user data
+            0x0A, // Length (includes transport + app)
+            0xC3, // Control: master, confirmed user data
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
             // Transport layer
-            0xC0,       // Transport header: FIN=1, FIR=1, SEQ=0
+            0xC0, // Transport header: FIN=1, FIR=1, SEQ=0
             // Application layer
-            0xC0,       // Application control
-            0x01,       // Function code (Read)
+            0xC0, // Application control
+            0x01, // Function code (Read)
         ];
 
         let msg = parse(&data).unwrap();
@@ -471,16 +469,16 @@ mod tests {
     fn test_parse_dnp3_with_application_layer() {
         let data = [
             0x64, 0x05, // Start bytes
-            0x0C,       // Length
-            0xC4,       // Control: master, unconfirmed user data
+            0x0C, // Length
+            0xC4, // Control: master, unconfirmed user data
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
             // Transport layer
-            0xC0,       // Transport header
+            0xC0, // Transport header
             // Application layer
-            0xC1,       // Application control: FIN=1, FIR=1, CON=0, UNS=0, SEQ=1
-            0x01,       // Function code (Read)
+            0xC1, // Application control: FIN=1, FIR=1, CON=0, UNS=0, SEQ=1
+            0x01, // Function code (Read)
             0x3C, 0x02, // IIN bytes (for response)
             0x01, 0x00, // Object header
         ];
@@ -584,16 +582,16 @@ mod tests {
     fn test_dnp3_response_with_iin() {
         let data = [
             0x64, 0x05, // Start bytes
-            0x10,       // Length
-            0x44,       // Control: outstation, unconfirmed user data
+            0x10, // Length
+            0x44, // Control: outstation, unconfirmed user data
             0x01, 0x00, // Destination
             0x02, 0x00, // Source
             0x00, 0x00, // CRC
             // Transport layer
-            0xC0,       // Transport header
+            0xC0, // Transport header
             // Application layer (response)
-            0xC0,       // Application control
-            0x81,       // Function code (Response)
+            0xC0, // Application control
+            0x81, // Function code (Response)
             0x00, 0x00, // IIN bytes
         ];
 

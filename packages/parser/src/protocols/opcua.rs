@@ -300,7 +300,10 @@ mod tests {
 
         let msg = parse(&data).unwrap();
         assert_eq!(msg.message_type, "Hello");
-        assert_eq!(msg.endpoint_url, Some("opc.tcp://localhost:4840".to_string()));
+        assert_eq!(
+            msg.endpoint_url,
+            Some("opc.tcp://localhost:4840".to_string())
+        );
     }
 
     #[test]
@@ -494,7 +497,7 @@ mod tests {
         let data = [
             b'O', b'P', b'N', b'F', // Message type + chunk type
             0x0A, 0x00, 0x00, 0x00, // Message size
-            0x00, 0x00,             // Too short
+            0x00, 0x00, // Too short
         ];
 
         let msg = parse(&data).unwrap();
@@ -520,7 +523,7 @@ mod tests {
         let data = [
             b'C', b'L', b'O', b'F', // Message type + chunk type
             0x09, 0x00, 0x00, 0x00, // Message size
-            0x00,                   // Too short
+            0x00, // Too short
         ];
 
         let msg = parse(&data).unwrap();
@@ -567,6 +570,9 @@ mod tests {
 
         assert_eq!(msg.message_type, "Hello");
         assert!(msg.is_final);
-        assert_eq!(msg.endpoint_url, Some("opc.tcp://localhost:4840".to_string()));
+        assert_eq!(
+            msg.endpoint_url,
+            Some("opc.tcp://localhost:4840".to_string())
+        );
     }
 }
