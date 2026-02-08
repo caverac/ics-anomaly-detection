@@ -192,7 +192,7 @@ cd packages/feature-engine
 uv sync
 KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python -m src.main
 
-# Terminal 4: Anomaly Detection
+# Terminal 4: Anomaly Detection (requires trained models - see note below)
 cd packages/anomaly-detection
 uv sync
 KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python -m src.main
@@ -205,6 +205,36 @@ KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python -m src.main
 # Terminal 6: Dashboard (with hot reload)
 yarn dev:dashboard
 ```
+
+:::warning Anomaly Detection Requires Trained Models
+The anomaly-detection service requires trained ML models to run. For local development, you have two options:
+
+**Option A: Copy models from Docker (quickest)**
+```bash
+# First, run the pipeline in Docker to train models
+make dev-dashboard
+# Wait ~2 minutes for features to accumulate, then train
+make train
+
+# Copy models to local directory
+cd packages/anomaly-detection
+mkdir -p models
+docker cp ics-anomaly-detection:/app/models/. ./models/
+```
+
+**Option B: Train locally**
+```bash
+cd packages/anomaly-detection
+uv sync
+
+# Run training from Kafka (requires pipeline running)
+KAFKA_BOOTSTRAP_SERVERS=localhost:9094 uv run python scripts/train.py \
+  --kafka-brokers localhost:9094 \
+  --output-dir ./models \
+  --max-samples 50 \
+  --epochs 5
+```
+:::
 
 ### Option 3: Hybrid Mode (Mix of Docker and Local)
 

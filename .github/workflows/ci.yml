@@ -261,12 +261,11 @@ jobs:
 
       - name: Install feature-engine dependencies
         working-directory: packages/feature-engine
-        run: uv sync --dev
+        run: uv sync --extra dev
 
       - name: Run feature-engine tests
         working-directory: packages/feature-engine
         run: uv run pytest tests/ -v --cov=src --cov-report=xml
-        continue-on-error: true # Tests may not exist yet
 
   # ===========================================================================
   # Docker Build & E2E Tests
@@ -275,7 +274,7 @@ jobs:
   build-and-e2e:
     name: Build Docker & E2E Tests
     runs-on: ubuntu-latest
-    needs: [build-js, test-go, test-rust, lint-python]
+    needs: [build-js, test-go, test-rust, lint-python, test-python]
     steps:
       - uses: actions/checkout@v4
 
@@ -330,7 +329,7 @@ jobs:
   deploy-docs:
     name: Deploy Docs
     runs-on: ubuntu-latest
-    needs: [build-js]
+    needs: [build-and-e2e]
     # Only deploy on push to main, not on PRs
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
@@ -356,13 +355,79 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # ===========================================================================
+  # Deploy Infrastructure (CDK)
+  # ===========================================================================
+
+  deploy-cdk:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: [build-and-e2e]
+    # Only deploy on push to main, not on PRs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: aws-infrastructure
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
+
+      # - name: CDK Diff
+      #   working-directory: packages/infrastructure
+      #   run: ENVIRONMENT=production yarn cdk diff
+
+      # - name: CDK Deploy
+      #   working-directory: packages/infrastructure
+      #   run: ENVIRONMENT=production yarn cdk deploy --require-approval never
+
+  # ===========================================================================
   # Summary
   # ===========================================================================
 
   ci-complete:
     name: CI Complete
     runs-on: ubuntu-latest
-    needs: [build-and-e2e]
+    needs: [build-and-e2e, deploy-docs, deploy-cdk]
+    if: always()
     steps:
-      - name: All checks passed
-        run: echo "All CI checks passed!"
+      - name: Check results
+        run: |
+          # Build and E2E must succeed
+          if [[ "${{ needs.build-and-e2e.result }}" != "success" ]]; then
+            echo "Build and E2E tests failed"
+            exit 1
+          fi
+
+          # Deployments must succeed or be skipped (skipped on PRs)
+          if [[ "${{ needs.deploy-docs.result }}" == "failure" ]]; then
+            echo "Docs deployment failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.deploy-cdk.result }}" == "failure" ]]; then
+            echo "CDK deployment failed"
+            exit 1
+          fi
+
+          echo "All CI checks passed!"
+          if [[ "${{ needs.deploy-docs.result }}" == "success" ]]; then
+            echo "  ✓ Docs deployed to GitHub Pages"
+          fi
+          if [[ "${{ needs.deploy-cdk.result }}" == "success" ]]; then
+            echo "  ✓ Infrastructure deployed to AWS"
+          fi

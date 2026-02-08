@@ -15,6 +15,7 @@ build/
 .cache-loader/
 .cache/
 *.pack
+*.tsbuildinfo
 
 # Python
 __pycache__/
